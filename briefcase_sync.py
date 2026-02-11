@@ -1,0 +1,218 @@
+"""agent-briefcase: sync AI agent configuration files from a shared repo."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+LOCK_FILE = ".briefcase.lock"
+POST_SYNC_HOOK = ".briefcase-post-sync.sh"
+MARKER_BEGIN = "# BEGIN briefcase-managed (do not edit this section)"
+MARKER_END = "# END briefcase-managed"
+BRIEFCASE_DIR_NAME = "agent-briefcase"
+
+
+def hash_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def read_lock(path: Path) -> dict:
+    if not path.exists():
+        return {"source_commit": "", "files": {}}
+    with open(path) as f:
+        return json.load(f)
+
+
+def write_lock(path: Path, source_commit: str, files: dict[str, dict]) -> None:
+    data = {"source_commit": source_commit, "files": files}
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2, sort_keys=True)
+        f.write("\n")
+
+
+def get_briefcase_commit(briefcase_dir: Path) -> str:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(briefcase_dir), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "unknown"
+
+
+def collect_files(briefcase_dir: Path, project_name: str) -> dict[str, Path]:
+    """Collect files to sync with layering: shared/ then project-specific/.
+
+    Returns {dest_relative_path: source_absolute_path}.
+    Project-specific files override shared files at the same dest path.
+    """
+    files: dict[str, Path] = {}
+
+    shared_dir = briefcase_dir / "shared"
+    if shared_dir.is_dir():
+        for src in sorted(shared_dir.rglob("*")):
+            if src.is_file():
+                rel = str(src.relative_to(shared_dir))
+                files[rel] = src
+
+    project_dir = briefcase_dir / project_name
+    if project_dir.is_dir():
+        for src in sorted(project_dir.rglob("*")):
+            if src.is_file():
+                rel = str(src.relative_to(project_dir))
+                files[rel] = src
+
+    return files
+
+
+def sync_files(
+    files_to_sync: dict[str, Path],
+    old_lock: dict,
+    briefcase_dir: Path,
+) -> dict[str, dict]:
+    """Sync files, skipping locally modified ones. Returns new file entries for lock."""
+    old_files = old_lock.get("files", {})
+    new_files: dict[str, dict] = {}
+
+    for dest_rel, src_path in sorted(files_to_sync.items()):
+        dest = Path(dest_rel)
+        source_rel = str(src_path.relative_to(briefcase_dir))
+        new_hash = hash_file(src_path)
+
+        if dest.exists():
+            current_hash = hash_file(dest)
+            if dest_rel in old_files:
+                locked_hash = old_files[dest_rel].get("sha256", "")
+                if current_hash != locked_hash:
+                    print(f"briefcase: SKIPPING {dest_rel} (locally modified)")
+                    new_files[dest_rel] = {
+                        "sha256": current_hash,
+                        "source": source_rel,
+                    }
+                    continue
+
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src_path, dest)
+        new_files[dest_rel] = {"sha256": new_hash, "source": source_rel}
+        print(f"briefcase: synced {dest_rel}")
+
+    return new_files
+
+
+def cleanup_removed(old_lock: dict, new_managed_files: dict[str, dict]) -> None:
+    old_files = old_lock.get("files", {})
+    for file_path in old_files:
+        if file_path not in new_managed_files:
+            p = Path(file_path)
+            if p.exists():
+                p.unlink()
+                print(f"briefcase: removed {file_path} (no longer in briefcase)")
+            # Clean up empty parent directories
+            parent = p.parent
+            while parent != Path("."):
+                try:
+                    parent.rmdir()
+                except OSError:
+                    break
+                parent = parent.parent
+
+
+def update_gitignore(managed_files: dict[str, dict]) -> None:
+    gitignore = Path(".gitignore")
+    lines: list[str] = []
+    if gitignore.exists():
+        lines = gitignore.read_text().splitlines()
+
+    # Build the managed section
+    managed_section = [MARKER_BEGIN]
+    for file_path in sorted(managed_files):
+        managed_section.append(f"/{file_path}")
+    managed_section.append(MARKER_END)
+
+    # Find existing markers
+    begin_idx = None
+    end_idx = None
+    for i, line in enumerate(lines):
+        if line == MARKER_BEGIN:
+            begin_idx = i
+        elif line == MARKER_END:
+            end_idx = i
+
+    if begin_idx is not None and end_idx is not None:
+        lines[begin_idx : end_idx + 1] = managed_section
+    else:
+        if lines and lines[-1] != "":
+            lines.append("")
+        lines.extend(managed_section)
+
+    gitignore.write_text("\n".join(lines) + "\n")
+
+
+def run_post_sync_hook() -> None:
+    hook = Path(POST_SYNC_HOOK)
+    if hook.exists() and os.access(hook, os.X_OK):
+        print(f"briefcase: running {POST_SYNC_HOOK}")
+        subprocess.run(["bash", str(hook)], check=False)
+
+
+def main() -> int:
+    # Parse args: optional sibling directory name
+    args = sys.argv[1:]
+    briefcase_dir_name = args[0] if args else BRIEFCASE_DIR_NAME
+
+    project_dir = Path.cwd()
+    project_name = project_dir.name
+    briefcase_dir = project_dir.parent / briefcase_dir_name
+
+    if not briefcase_dir.is_dir():
+        print(
+            f"briefcase: content repo '{briefcase_dir_name}' "
+            f"not found as sibling directory, skipping."
+        )
+        return 0
+
+    # Read current lock
+    lock_path = Path(LOCK_FILE)
+    old_lock = read_lock(lock_path)
+
+    # Get briefcase commit
+    source_commit = get_briefcase_commit(briefcase_dir)
+
+    # Collect files with layering
+    files_to_sync = collect_files(briefcase_dir, project_name)
+
+    if not files_to_sync:
+        print(f"briefcase: no files found for project '{project_name}'")
+        cleanup_removed(old_lock, {})
+        update_gitignore({})
+        write_lock(lock_path, source_commit, {})
+        return 0
+
+    # Sync files
+    new_files = sync_files(files_to_sync, old_lock, briefcase_dir)
+
+    # Clean up removed files
+    cleanup_removed(old_lock, new_files)
+
+    # Update .gitignore
+    update_gitignore(new_files)
+
+    # Write lock file
+    write_lock(lock_path, source_commit, new_files)
+
+    # Run post-sync hook
+    run_post_sync_hook()
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

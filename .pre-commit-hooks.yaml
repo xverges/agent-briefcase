@@ -1,0 +1,8 @@
+- id: briefcase-sync
+  name: briefcase-sync
+  description: Sync AI agent configuration files from your team's briefcase repo
+  entry: briefcase-sync
+  language: python
+  stages: [post-checkout, post-merge]
+  always_run: true
+  pass_filenames: false
