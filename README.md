@@ -128,3 +128,20 @@ To trigger a sync manually without checking out a branch:
 ```bash
 pre-commit run briefcase-sync --hook-stage post-checkout
 ```
+
+## Development
+
+Requires [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync --extra test          # create venv and install with test deps
+uv run pytest                 # run tests
+uv run ruff check .           # lint
+uv run ruff format .          # format
+```
+
+To run the full CI suite locally (lint + tests across Python 3.10–3.13):
+
+```bash
+uv tool run nox
+```
