@@ -19,10 +19,8 @@ APPROVED_DIR = E2E_DIR / "approved_files"
 SCENARIOS_MD = E2E_DIR.parents[1] / "SCENARIOS.md"
 
 AUTOGEN_HEADER = (
-    "> **Auto-generated** from approved test output — do not edit by hand.\n"
-    "> Re-run `pytest` to regenerate.\n"
+    "> **Auto-generated** from approved test output — do not edit by hand.\n> Re-run `pytest` to regenerate.\n"
 )
-
 
 
 # ---------------------------------------------------------------------------
