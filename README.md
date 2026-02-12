@@ -1,5 +1,9 @@
 # agent-briefcase
 
+<p align="left">
+  <img src="docs/briefcase.png" alt="agent-briefcase" width="150">
+  <a href="https://github.com/pre-commit/pre-commit"><img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit" alt="pre-commit" style="max-width:100%;"></a>
+</p>
 Share your team's AI agent knowledge across every repo.
 
 ## The problem
