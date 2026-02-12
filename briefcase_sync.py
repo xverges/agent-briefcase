@@ -217,7 +217,10 @@ def main(argv: list[str] | None = None) -> int:
     files_to_sync = collect_files(briefcase_dir, project_name, args.shared)
 
     if not files_to_sync:
-        print(f"briefcase: no files found for project '{project_name}'")
+        print(
+            f"briefcase: WARNING — no files found in briefcase for project '{project_name}', skipping sync.",
+            file=sys.stderr,
+        )
         cleanup_removed(old_lock, {})
         update_gitignore({})
         write_lock(lock_path, source_commit, {})
