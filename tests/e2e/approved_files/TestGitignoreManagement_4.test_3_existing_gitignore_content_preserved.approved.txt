@@ -1,0 +1,10 @@
+Scenario: Existing .gitignore entries are preserved alongside managed section
+
+.gitignore:
+node_modules/
+.env
+
+# BEGIN briefcase-managed (do not edit this section)
+/CLAUDE.md
+# END briefcase-managed
+

@@ -1,0 +1,15 @@
+Scenario: Updated briefcase files are synced to the target
+
+CLAUDE.md content:
+before: '# version 1'
+after:  '# version 2'
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+

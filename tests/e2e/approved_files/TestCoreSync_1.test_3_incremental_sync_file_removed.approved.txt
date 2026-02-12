@@ -1,0 +1,26 @@
+Scenario: Removing a file from the briefcase cleans it up in the target
+
+Briefcase change:
+CLAUDE.md (kept)
+.claude/commands/review.md (removed from briefcase)
+
+stdout:
+  briefcase: synced CLAUDE.md
+  briefcase: removed .claude/commands/review.md (no longer in briefcase)
+
+stderr:
+(empty)
+
+exit code:
+0
+
+Target directory after sync:
+.briefcase.lock
+.gitignore
+CLAUDE.md
+
+.gitignore:
+# BEGIN briefcase-managed (do not edit this section)
+/CLAUDE.md
+# END briefcase-managed
+

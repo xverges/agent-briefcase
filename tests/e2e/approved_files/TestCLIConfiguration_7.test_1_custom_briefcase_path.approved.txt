@@ -1,0 +1,17 @@
+Scenario: Custom --briefcase path resolves files from a non-sibling directory
+
+Briefcase relative path:
+somewhere/else/my-briefcase
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+CLAUDE.md content:
+# from custom path
+

@@ -1,0 +1,11 @@
+Scenario: Missing briefcase repo warns on stderr and exits successfully (CI-friendly)
+
+stdout:
+(empty)
+
+stderr:
+  briefcase: WARNING — briefcase repo not found at '<tmp>/nonexistent-briefcase', skipping sync.
+
+exit code:
+0
+

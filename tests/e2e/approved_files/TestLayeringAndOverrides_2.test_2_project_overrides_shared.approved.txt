@@ -1,0 +1,18 @@
+Scenario: Project-specific files override shared files at the same path
+
+Briefcase contents:
+shared/CLAUDE.md       → '# shared version'
+my-project/CLAUDE.md   → '# project-specific version'
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+CLAUDE.md in target (project wins):
+# project-specific version
+

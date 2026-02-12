@@ -1,0 +1,28 @@
+Scenario: Fresh sync copies all files when no prior state exists
+
+Briefcase contents:
+briefcase/shared/CLAUDE.md
+briefcase/shared/.claude/commands/review.md
+
+stdout:
+  briefcase: synced .claude/commands/review.md
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+Target directory after sync:
+.briefcase.lock
+.claude/commands/review.md
+.gitignore
+CLAUDE.md
+
+.gitignore:
+# BEGIN briefcase-managed (do not edit this section)
+/.claude/commands/review.md
+/CLAUDE.md
+# END briefcase-managed
+

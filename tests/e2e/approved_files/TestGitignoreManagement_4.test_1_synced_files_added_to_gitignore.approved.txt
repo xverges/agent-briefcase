@@ -1,0 +1,8 @@
+Scenario: All synced files appear in a managed .gitignore section
+
+.gitignore:
+# BEGIN briefcase-managed (do not edit this section)
+/.claude/commands/review.md
+/CLAUDE.md
+# END briefcase-managed
+

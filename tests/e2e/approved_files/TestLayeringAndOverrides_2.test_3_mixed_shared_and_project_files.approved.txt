@@ -1,0 +1,22 @@
+Scenario: Shared and project-specific files are both synced
+
+Briefcase contents:
+shared/.claude/commands/review.md  (from shared)
+my-project/CLAUDE.md                (from project)
+
+stdout:
+  briefcase: synced .claude/commands/review.md
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+Target directory after sync:
+.briefcase.lock
+.claude/commands/review.md
+.gitignore
+CLAUDE.md
+

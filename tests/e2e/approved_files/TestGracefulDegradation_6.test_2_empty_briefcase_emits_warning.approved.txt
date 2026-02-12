@@ -1,0 +1,15 @@
+Scenario: Empty briefcase emits a warning
+
+Setup:
+briefcase/  (exists, empty)
+my-project/  (exists)
+
+stdout:
+(empty)
+
+stderr:
+  briefcase: WARNING — no files found in briefcase for project 'my-project', skipping sync.
+
+exit code:
+0
+

@@ -1,0 +1,18 @@
+Scenario: Custom --project name picks up files from the named folder
+
+Setup:
+briefcase/custom-name/CLAUDE.md exists
+target dir is 'my-project' but --project=custom-name
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+CLAUDE.md content:
+# for custom-name project
+

@@ -1,0 +1,14 @@
+Scenario: Sync completes normally when no post-sync hook exists
+
+Setup:
+(no .briefcase-post-sync.sh in target)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+

@@ -1,0 +1,18 @@
+Scenario: Locally modified files are preserved with a warning
+
+Conflict:
+briefcase CLAUDE.md: '# updated in briefcase'
+local CLAUDE.md:     '# my local edits'
+
+stdout:
+  briefcase: SKIPPING CLAUDE.md (locally modified)
+
+stderr:
+(empty)
+
+exit code:
+0
+
+CLAUDE.md in target (local edit preserved):
+# my local edits
+

@@ -1,0 +1,19 @@
+Scenario: Post-sync hook runs after files are synced
+
+.briefcase-post-sync.sh:
+#!/bin/bash
+echo 'hook-was-here' > .post-sync-marker
+
+stdout:
+  briefcase: synced CLAUDE.md
+  briefcase: running .briefcase-post-sync.sh
+
+stderr:
+(empty)
+
+exit code:
+0
+
+.post-sync-marker content:
+hook-was-here
+

@@ -1,0 +1,20 @@
+Scenario: Files sync from shared/ when no project-specific folder exists
+
+Briefcase contents:
+briefcase/shared/CLAUDE.md
+(no my-project/ folder)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+Target directory after sync:
+.briefcase.lock
+.gitignore
+CLAUDE.md
+

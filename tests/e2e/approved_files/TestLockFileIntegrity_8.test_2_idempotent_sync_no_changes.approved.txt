@@ -1,0 +1,16 @@
+Scenario: Re-running sync with no changes is idempotent
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+Target directory (unchanged):
+.briefcase.lock
+.gitignore
+CLAUDE.md
+

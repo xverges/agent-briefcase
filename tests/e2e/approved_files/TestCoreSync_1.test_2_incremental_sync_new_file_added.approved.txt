@@ -1,0 +1,22 @@
+Scenario: Incremental sync picks up newly added files
+
+Briefcase contents:
+CLAUDE.md (already synced)
+new-file.md (just added)
+
+stdout:
+  briefcase: synced CLAUDE.md
+  briefcase: synced new-file.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+Target directory after sync:
+.briefcase.lock
+.gitignore
+CLAUDE.md
+new-file.md
+

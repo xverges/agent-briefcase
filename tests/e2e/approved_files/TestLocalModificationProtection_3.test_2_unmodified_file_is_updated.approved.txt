@@ -1,0 +1,14 @@
+Scenario: Unmodified synced files are updated when the briefcase changes
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+CLAUDE.md in target (updated to v2):
+# v2
+

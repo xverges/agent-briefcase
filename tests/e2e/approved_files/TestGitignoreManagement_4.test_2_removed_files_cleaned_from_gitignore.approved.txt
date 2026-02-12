@@ -1,0 +1,13 @@
+Scenario: Removed files are cleaned from .gitignore
+
+.gitignore before:
+# BEGIN briefcase-managed (do not edit this section)
+/CLAUDE.md
+/extra.md
+# END briefcase-managed
+
+.gitignore after (extra.md removed):
+# BEGIN briefcase-managed (do not edit this section)
+/CLAUDE.md
+# END briefcase-managed
+

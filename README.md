@@ -187,6 +187,10 @@ To trigger a sync manually without checking out a branch:
 pre-commit run briefcase-sync --hook-stage post-checkout
 ```
 
+## Behavior reference
+
+See [SCENARIOS.md](SCENARIOS.md) for a full catalog of how briefcase handles every sync situation — fresh syncs, layering, local modifications, missing repos, and more. Auto-generated from end-to-end tests.
+
 ## Development
 
 Requires [uv](https://docs.astral.sh/uv/).
