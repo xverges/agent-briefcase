@@ -30,16 +30,16 @@ Files in `shared/` are synced to every project. Files in a project-specific fold
 
 ### 1. Set up your briefcase repo
 
-Create a repo (or use this one as a template) with a `shared/` folder and per-project folders as needed. The project folder names must match the directory names of your target repos.
+Create a new repo with a `shared/` folder and per-project folders as needed. The project folder names must match the directory names of your target repos (or use `--project` to map them explicitly).
 
 ### 2. Add the hook to your target repos
 
 In each target repo's `.pre-commit-config.yaml`:
 
 ```yaml
-default_install_hook_types: [pre-commit, post-checkout, post-merge]
+default_install_hook_types: [post-checkout, post-merge]
 repos:
-  - repo: https://github.com/yourorg/agent-briefcase
+  - repo: https://github.com/xverges/agent-briefcase
     rev: v0.1.0
     hooks:
       - id: briefcase-sync
@@ -53,7 +53,7 @@ pre-commit install
 
 ### 3. Clone both repos as siblings
 
-The briefcase repo must be a sibling directory of the target repo:
+By default the briefcase repo must be a sibling directory named `agent-briefcase`:
 
 ```
 ~/code/
@@ -63,6 +63,58 @@ The briefcase repo must be a sibling directory of the target repo:
 ```
 
 That's it. On every `git checkout` or `git merge` in a target repo, the hook syncs the relevant files automatically.
+
+## Configuration
+
+All options are passed via `args:` in `.pre-commit-config.yaml`. Everything is optional — the zero-config default works if your briefcase repo is a sibling directory named `agent-briefcase`.
+
+```yaml
+hooks:
+  - id: briefcase-sync
+    args:
+      - --briefcase=../my-team-briefcase   # relative or absolute path to the briefcase repo
+      - --project=projectA-v3              # override the auto-detected project folder name
+      - --shared=shared-front-end          # override the shared folder name (default: "shared")
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--briefcase` | Sibling dir named `agent-briefcase` | Path (relative or absolute) to the briefcase repo. |
+| `--project` | Target repo's directory name | Which folder inside the briefcase to use for project-specific files. |
+| `--shared` | `shared` | Which folder inside the briefcase to use for shared files. |
+
+### Examples
+
+**Custom briefcase location** — your briefcase repo is in a different directory:
+
+```yaml
+args: [--briefcase=/opt/team/briefcase]
+```
+
+**Multiple shared layers** — you have `shared-frontend` and `shared-backend` instead of `shared`:
+
+```yaml
+# In your frontend repos:
+args: [--shared=shared-frontend]
+
+# In your backend repos:
+args: [--shared=shared-backend]
+```
+
+**Project name mismatch** — your repo is called `app-v3` but the briefcase folder is `app`:
+
+```yaml
+args: [--project=app]
+```
+
+## Why post-checkout and post-merge?
+
+The hook runs on two git events:
+
+- **`post-checkout`** — fires after `git checkout` / `git switch`. This covers branch switches, the most common moment where you want fresh config synced.
+- **`post-merge`** — fires after `git merge` (including `git pull`). This ensures config is re-synced after pulling upstream changes.
+
+These are the two moments when your working tree changes due to git operations. The hook deliberately does **not** run as a `pre-commit` stage — injecting files into the working tree mid-commit would be disruptive and unexpected.
 
 ## Layering
 
@@ -117,9 +169,15 @@ Briefcase intentionally does not have a built-in personal override system. If yo
 echo "## My extra rules" >> CLAUDE.md
 ```
 
-## CI behavior
+## CI / missing briefcase
 
-If the briefcase repo is not found as a sibling directory, the hook exits silently with success. This means CI environments work without any special configuration.
+If the briefcase repo is not found at the expected path, the hook prints a warning to stderr and exits with success (exit code 0):
+
+```
+briefcase: WARNING — briefcase repo not found at '../agent-briefcase', skipping sync.
+```
+
+This means CI environments won't fail, but the warning is always visible in logs so misconfigurations don't go unnoticed.
 
 ## Manual sync
 

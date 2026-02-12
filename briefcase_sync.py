@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -14,7 +15,8 @@ LOCK_FILE = ".briefcase.lock"
 POST_SYNC_HOOK = ".briefcase-post-sync.sh"
 MARKER_BEGIN = "# BEGIN briefcase-managed (do not edit this section)"
 MARKER_END = "# END briefcase-managed"
-BRIEFCASE_DIR_NAME = "agent-briefcase"
+DEFAULT_BRIEFCASE_DIR_NAME = "agent-briefcase"
+DEFAULT_SHARED_FOLDER = "shared"
 
 
 def hash_file(path: Path) -> str:
@@ -48,7 +50,7 @@ def get_briefcase_commit(briefcase_dir: Path) -> str:
         return "unknown"
 
 
-def collect_files(briefcase_dir: Path, project_name: str) -> dict[str, Path]:
+def collect_files(briefcase_dir: Path, project_name: str, shared_folder: str) -> dict[str, Path]:
     """Collect files to sync with layering: shared/ then project-specific/.
 
     Returns {dest_relative_path: source_absolute_path}.
@@ -56,7 +58,7 @@ def collect_files(briefcase_dir: Path, project_name: str) -> dict[str, Path]:
     """
     files: dict[str, Path] = {}
 
-    shared_dir = briefcase_dir / "shared"
+    shared_dir = briefcase_dir / shared_folder
     if shared_dir.is_dir():
         for src in sorted(shared_dir.rglob("*")):
             if src.is_file():
@@ -163,19 +165,44 @@ def run_post_sync_hook() -> None:
         subprocess.run(["bash", str(hook)], check=False)
 
 
-def main() -> int:
-    # Parse args: optional sibling directory name
-    args = sys.argv[1:]
-    briefcase_dir_name = args[0] if args else BRIEFCASE_DIR_NAME
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Sync AI agent config from a briefcase repo.")
+    parser.add_argument(
+        "--briefcase",
+        default=None,
+        help=(
+            "Path to the briefcase repo (relative or absolute). "
+            f"Defaults to a sibling directory named '{DEFAULT_BRIEFCASE_DIR_NAME}'."
+        ),
+    )
+    parser.add_argument(
+        "--project",
+        default=None,
+        help="Project folder name inside the briefcase. Defaults to the target repo's directory name.",
+    )
+    parser.add_argument(
+        "--shared",
+        default=DEFAULT_SHARED_FOLDER,
+        help=f"Shared folder name inside the briefcase (default: '{DEFAULT_SHARED_FOLDER}').",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
 
     project_dir = Path.cwd()
-    project_name = project_dir.name
-    briefcase_dir = project_dir.parent / briefcase_dir_name
+    project_name = args.project or project_dir.name
+
+    if args.briefcase:
+        briefcase_dir = Path(args.briefcase).resolve()
+    else:
+        briefcase_dir = project_dir.parent / DEFAULT_BRIEFCASE_DIR_NAME
 
     if not briefcase_dir.is_dir():
         print(
-            f"briefcase: content repo '{briefcase_dir_name}' "
-            f"not found as sibling directory, skipping."
+            f"briefcase: WARNING — briefcase repo not found at '{briefcase_dir}', skipping sync.",
+            file=sys.stderr,
         )
         return 0
 
@@ -187,7 +214,7 @@ def main() -> int:
     source_commit = get_briefcase_commit(briefcase_dir)
 
     # Collect files with layering
-    files_to_sync = collect_files(briefcase_dir, project_name)
+    files_to_sync = collect_files(briefcase_dir, project_name, args.shared)
 
     if not files_to_sync:
         print(f"briefcase: no files found for project '{project_name}'")
@@ -215,4 +242,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))
