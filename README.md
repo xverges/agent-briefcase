@@ -207,3 +207,12 @@ To run the full CI suite locally (lint + tests across Python 3.10–3.13):
 ```bash
 uv tool run nox
 ```
+
+### Releasing
+
+The version in `pyproject.toml` is the single source of truth. To release a new version:
+
+1. Bump `version` in `pyproject.toml`
+2. Update `rev:` in this README to match (prefixed with `v`) — a test will fail if they diverge
+3. Merge to `main`
+4. CI automatically creates the corresponding git tag via `.github/workflows/release.yml`
