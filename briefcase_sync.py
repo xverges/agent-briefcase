@@ -254,7 +254,10 @@ def main(argv: list[str] | None = None) -> int:
     project_dir = Path.cwd()
     project_name = args.project or project_dir.name
 
-    if args.briefcase:
+    env_briefcase = os.environ.get("BRIEFCASE_PATH")
+    if env_briefcase:
+        briefcase_dir = Path(env_briefcase).resolve()
+    elif args.briefcase:
         briefcase_dir = Path(args.briefcase).resolve()
     else:
         briefcase_dir = project_dir.parent / DEFAULT_BRIEFCASE_DIR_NAME

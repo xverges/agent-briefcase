@@ -404,7 +404,29 @@ CLAUDE.md content:
 # for custom-name project
 ```
 
-### 19. Custom shared name
+### 19. Env var overrides cli briefcase path
+
+```
+Scenario: BRIEFCASE_PATH env var overrides --briefcase CLI argument
+
+Setup:
+--briefcase points to cli-briefcase/ with '# from CLI path'
+BRIEFCASE_PATH points to env-briefcase/ with '# from BRIEFCASE_PATH'
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+CLAUDE.md content (env var wins):
+# from BRIEFCASE_PATH
+```
+
+### 20. Custom shared name
 
 ```
 Scenario: Custom --shared folder name uses the specified folder instead of 'shared/'
@@ -431,7 +453,7 @@ CLAUDE.md
 
 ## Lock File Integrity
 
-### 20. Lock file records state
+### 21. Lock file records state
 
 ```
 Scenario: Lock file records source commit and file hashes after sync
@@ -448,7 +470,7 @@ Scenario: Lock file records source commit and file hashes after sync
 }
 ```
 
-### 21. Idempotent sync no changes
+### 22. Idempotent sync no changes
 
 ```
 Scenario: Re-running sync with no changes is idempotent
@@ -471,7 +493,7 @@ CLAUDE.md
 
 ## Staleness Detection
 
-### 22. Warns when briefcase is behind remote
+### 23. Warns when briefcase is behind remote
 
 ```
 Scenario: Stale briefcase emits a warning but sync proceeds normally
@@ -495,7 +517,7 @@ Target directory after sync:
 CLAUDE.md
 ```
 
-### 23. No warning when up to date
+### 24. No warning when up to date
 
 ```
 Scenario: Up-to-date briefcase produces no staleness warning
@@ -514,7 +536,7 @@ exit code:
 0
 ```
 
-### 24. No warning when fetch fails
+### 25. No warning when fetch fails
 
 ```
 Scenario: Offline / fetch failure skips staleness check silently
@@ -532,7 +554,7 @@ exit code:
 0
 ```
 
-### 25. No warning when not a git repo
+### 26. No warning when not a git repo
 
 ```
 Scenario: Non-git briefcase directory skips staleness check
@@ -550,7 +572,7 @@ exit code:
 0
 ```
 
-### 26. No warning when remote ref not found
+### 27. No warning when remote ref not found
 
 ```
 Scenario: Missing remote tracking branch skips staleness check
@@ -572,7 +594,7 @@ exit code:
 
 ## Symlink Support
 
-### 27. Symlinked project files are synced as copies
+### 28. Symlinked project files are synced as copies
 
 ```
 Scenario: Symlinked files in briefcase project folders are synced as regular copies

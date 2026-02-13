@@ -1,0 +1,18 @@
+Scenario: BRIEFCASE_PATH env var overrides --briefcase CLI argument
+
+Setup:
+--briefcase points to cli-briefcase/ with '# from CLI path'
+BRIEFCASE_PATH points to env-briefcase/ with '# from BRIEFCASE_PATH'
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+CLAUDE.md content (env var wins):
+# from BRIEFCASE_PATH
+
