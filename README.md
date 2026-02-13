@@ -18,23 +18,26 @@ Configuration is organized with a simple convention:
 
 ```
 your-briefcase-repo/
-├── shared/              # applies to all projects
-│   └── .claude/
-│       └── commands/
-│           └── review.md
-├── projectA/            # only applies to projectA (matched by folder name)
-│   └── CLAUDE.md
-└── projectB/
-    └── CLAUDE.md
+├── config/
+│   ├── shared/              # applies to all projects
+│   │   └── .claude/
+│   │       └── commands/
+│   │           └── review.md
+│   ├── projectA/            # only applies to projectA (matched by folder name)
+│   │   └── CLAUDE.md
+│   └── projectB/
+│       └── CLAUDE.md
+├── docs/                    # non-config content lives alongside
+└── README.md
 ```
 
-Files in `shared/` are synced to every project. Files in a project-specific folder override shared files when both exist at the same path.
+All synced content lives under `config/`. Files in `config/shared/` are synced to every project. Files in a project-specific folder override shared files when both exist at the same path. The rest of the repo is yours — docs, guides, scripts, etc.
 
 ## Quick start
 
 ### 1. Set up your briefcase repo
 
-Create a new repo with a `shared/` folder and per-project folders as needed. The project folder names must match the directory names of your target repos (or use `--project` to map them explicitly).
+Create a new repo with a `config/` folder containing a `shared/` folder and per-project folders as needed. The project folder names must match the directory names of your target repos (or use `--project` to map them explicitly).
 
 ### 2. Add the hook to your target repos
 
@@ -44,7 +47,7 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.2.0
+    rev: v0.3.0
     hooks:
       - id: briefcase-sync
 ```
@@ -61,9 +64,9 @@ By default the briefcase repo must be a sibling directory named `agent-briefcase
 
 ```
 ~/code/
-├── agent-briefcase/     # your briefcase repo
-├── projectA/            # target repo — gets files from shared/ + projectA/
-└── projectB/            # target repo — gets files from shared/ + projectB/
+├── agent-briefcase/     # your briefcase repo (config/ folder inside)
+├── projectA/            # target repo — gets files from config/shared/ + config/projectA/
+└── projectB/            # target repo — gets files from config/shared/ + config/projectB/
 ```
 
 That's it. On every `git checkout` or `git merge` in a target repo, the hook syncs the relevant files automatically.
@@ -84,8 +87,8 @@ hooks:
 | Option | Default | Description |
 |---|---|---|
 | `--briefcase` | Sibling dir named `agent-briefcase` | Path (relative or absolute) to the briefcase repo. |
-| `--project` | Target repo's directory name | Which folder inside the briefcase to use for project-specific files. |
-| `--shared` | `shared` | Which folder inside the briefcase to use for shared files. |
+| `--project` | Target repo's directory name | Which folder inside `config/` to use for project-specific files. |
+| `--shared` | `shared` | Which folder inside `config/` to use for shared files. |
 
 ### Examples
 
@@ -95,7 +98,7 @@ hooks:
 args: [--briefcase=/opt/team/briefcase]
 ```
 
-**Multiple shared layers** — you have `shared-frontend` and `shared-backend` instead of `shared`:
+**Multiple shared layers** — you have `config/shared-frontend` and `config/shared-backend` instead of `config/shared`:
 
 ```yaml
 # In your frontend repos:
@@ -122,11 +125,11 @@ These are the two moments when your working tree changes due to git operations. 
 
 ## Layering
 
-When both `shared/` and a project-specific folder contain a file at the same path, the project-specific version wins:
+When both `config/shared/` and a project-specific folder contain a file at the same path, the project-specific version wins:
 
 ```
-shared/CLAUDE.md              →  base version for all projects
-projectA/CLAUDE.md            →  overrides shared/CLAUDE.md in projectA only
+config/shared/CLAUDE.md       →  base version for all projects
+config/projectA/CLAUDE.md     →  overrides shared/CLAUDE.md in projectA only
 ```
 
 ## The lock file

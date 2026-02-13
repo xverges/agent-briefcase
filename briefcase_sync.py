@@ -16,6 +16,7 @@ POST_SYNC_HOOK = ".briefcase-post-sync.sh"
 MARKER_BEGIN = "# BEGIN briefcase-managed (do not edit this section)"
 MARKER_END = "# END briefcase-managed"
 DEFAULT_BRIEFCASE_DIR_NAME = "agent-briefcase"
+CONFIG_DIR = "config"
 DEFAULT_SHARED_FOLDER = "shared"
 
 
@@ -115,14 +116,16 @@ def collect_files(briefcase_dir: Path, project_name: str, shared_folder: str) ->
     """
     files: dict[str, Path] = {}
 
-    shared_dir = briefcase_dir / shared_folder
+    config_root = briefcase_dir / CONFIG_DIR
+
+    shared_dir = config_root / shared_folder
     if shared_dir.is_dir():
         for src in sorted(shared_dir.rglob("*")):
             if src.is_file():
                 rel = str(src.relative_to(shared_dir))
                 files[rel] = src
 
-    project_dir = briefcase_dir / project_name
+    project_dir = config_root / project_name
     if project_dir.is_dir():
         for src in sorted(project_dir.rglob("*")):
             if src.is_file():

@@ -1,6 +1,6 @@
 [project]
 name = "agent-briefcase"
-version = "0.2.0"
+version = "0.3.0"
 description = "Sync AI agent configuration files from your team's briefcase repo"
 readme = "README.md"
 license = "MIT"
