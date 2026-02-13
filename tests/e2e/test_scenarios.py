@@ -440,7 +440,32 @@ class TestCLIConfiguration_7:
         story.add_frame(synced_content, "CLAUDE.md content")
         verify(story)
 
-    def test_3_custom_shared_name(self, tmp_path: Path) -> None:
+    def test_3_env_var_overrides_cli_briefcase_path(self, tmp_path: Path) -> None:
+        """BRIEFCASE_PATH env var takes precedence over --briefcase."""
+        cli_briefcase = tmp_path / "cli-briefcase"
+        write_file(cli_briefcase / "config" / "shared" / "CLAUDE.md", "# from CLI path")
+
+        env_briefcase = tmp_path / "env-briefcase"
+        write_file(env_briefcase / "config" / "shared" / "CLAUDE.md", "# from BRIEFCASE_PATH")
+
+        target = tmp_path / "my-project"
+        target.mkdir()
+
+        with patch.dict(os.environ, {"BRIEFCASE_PATH": str(env_briefcase)}):
+            exit_code, stdout, stderr = run_sync(cli_briefcase, target)
+        synced_content = (target / "CLAUDE.md").read_text()
+
+        story = scenario("BRIEFCASE_PATH env var overrides --briefcase CLI argument")
+        story.add_frame(
+            "--briefcase points to cli-briefcase/ with '# from CLI path'\n"
+            "BRIEFCASE_PATH points to env-briefcase/ with '# from BRIEFCASE_PATH'",
+            "Setup",
+        )
+        add_result(story, exit_code, stdout, stderr)
+        story.add_frame(synced_content, "CLAUDE.md content (env var wins)")
+        verify(story)
+
+    def test_4_custom_shared_name(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
         write_file(briefcase / "config" / "common" / "CLAUDE.md", "# from common/")
         write_file(briefcase / "config" / "shared" / "IGNORED.md", "# should not sync")

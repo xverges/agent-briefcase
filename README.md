@@ -47,7 +47,7 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.3.0
+    rev: v0.4.0
     hooks:
       - id: briefcase-sync
 ```
@@ -168,7 +168,19 @@ The `.briefcase.lock` file itself is **not** gitignored — it should be committ
 
 ## Personal overrides
 
-Briefcase intentionally does not have a built-in personal override system. If you need local customizations, create a `.briefcase-post-sync.sh` script in your project (gitignored). The hook will run it after every sync:
+### Using a different briefcase
+
+If you want to use a different briefcase repo than the one configured in `.pre-commit-config.yaml`, set the `BRIEFCASE_PATH` environment variable. It takes precedence over both `--briefcase` and the default sibling directory:
+
+```bash
+export BRIEFCASE_PATH=~/my-personal-briefcase
+```
+
+This pairs well with [direnv](https://direnv.net/) — add it to your project's `.envrc` (gitignored) so the override is automatic.
+
+### Post-sync hook
+
+If you just need to tweak the synced files, create a `.briefcase-post-sync.sh` script in your project (gitignored). The hook will run it after every sync:
 
 ```bash
 #!/bin/bash
