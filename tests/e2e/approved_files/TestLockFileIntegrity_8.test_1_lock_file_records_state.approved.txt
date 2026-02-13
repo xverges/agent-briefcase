@@ -5,7 +5,7 @@ Scenario: Lock file records source commit and file hashes after sync
   "files": {
     "CLAUDE.md": {
       "sha256": "48647359ca75884b1961da7492f6f4da987a8cd99f5d4c32139b9e92595b0f15",
-      "source": "shared/CLAUDE.md"
+      "source": "config/shared/CLAUDE.md"
     }
   },
   "source_commit": "<commit>"
