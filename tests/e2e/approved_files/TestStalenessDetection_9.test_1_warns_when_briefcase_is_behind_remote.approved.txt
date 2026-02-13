@@ -1,0 +1,20 @@
+Scenario: Stale briefcase emits a warning but sync proceeds normally
+
+Briefcase git state:
+local HEAD: aaa1111
+remote HEAD: bbb2222 (3 commits ahead)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+  briefcase: WARNING — briefcase repo is 3 commit(s) behind origin/main. Run `git -C <tmp>/briefcase pull` to get the latest team config.
+
+exit code:
+0
+
+Target directory after sync:
+.briefcase.lock
+.gitignore
+CLAUDE.md
+

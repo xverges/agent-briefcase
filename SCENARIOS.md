@@ -468,3 +468,104 @@ Target directory (unchanged):
 CLAUDE.md
 ```
 
+
+## Staleness Detection
+
+### 22. Warns when briefcase is behind remote
+
+```
+Scenario: Stale briefcase emits a warning but sync proceeds normally
+
+Briefcase git state:
+local HEAD: aaa1111
+remote HEAD: bbb2222 (3 commits ahead)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+  briefcase: WARNING — briefcase repo is 3 commit(s) behind origin/main. Run `git -C <tmp>/briefcase pull` to get the latest team config.
+
+exit code:
+0
+
+Target directory after sync:
+.briefcase.lock
+.gitignore
+CLAUDE.md
+```
+
+### 23. No warning when up to date
+
+```
+Scenario: Up-to-date briefcase produces no staleness warning
+
+Briefcase git state:
+local HEAD: aaa1111
+remote HEAD: aaa1111 (same)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+```
+
+### 24. No warning when fetch fails
+
+```
+Scenario: Offline / fetch failure skips staleness check silently
+
+Briefcase git state:
+git fetch → fails (e.g. no network)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+```
+
+### 25. No warning when not a git repo
+
+```
+Scenario: Non-git briefcase directory skips staleness check
+
+Briefcase git state:
+git rev-parse → fails (not a git repo)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+```
+
+### 26. No warning when remote ref not found
+
+```
+Scenario: Missing remote tracking branch skips staleness check
+
+Briefcase git state:
+git fetch → ok
+git rev-parse origin/main → fails (no remote ref)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+```
+

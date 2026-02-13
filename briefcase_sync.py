@@ -50,6 +50,63 @@ def get_briefcase_commit(briefcase_dir: Path) -> str:
         return "unknown"
 
 
+def check_briefcase_staleness(briefcase_dir: Path) -> None:
+    """Fetch the briefcase remote and warn if local HEAD is behind.
+
+    This is purely informational — it never modifies the working tree.
+    Failures (offline, not a git repo, no remote) are silently ignored.
+    """
+    git = ["git", "-C", str(briefcase_dir)]
+    try:
+        # Fetch remote tracking refs (non-destructive)
+        subprocess.run(
+            [*git, "fetch", "--quiet"],
+            capture_output=True,
+            check=True,
+            timeout=10,
+        )
+        # Get local HEAD
+        local = subprocess.run(
+            [*git, "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        # Get the default remote branch (try origin/main, then origin/master)
+        for branch in ("origin/main", "origin/master"):
+            try:
+                remote = subprocess.run(
+                    [*git, "rev-parse", branch],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                ).stdout.strip()
+                break
+            except subprocess.CalledProcessError:
+                continue
+        else:
+            return  # no known remote branch found
+
+        if local == remote:
+            return
+
+        # Count how many commits we're behind
+        behind = subprocess.run(
+            [*git, "rev-list", "--count", f"{local}..{remote}"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+
+        print(
+            f"briefcase: WARNING — briefcase repo is {behind} commit(s) behind {branch}. "
+            f"Run `git -C {briefcase_dir} pull` to get the latest team config.",
+            file=sys.stderr,
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError, OSError):
+        pass
+
+
 def collect_files(briefcase_dir: Path, project_name: str, shared_folder: str) -> dict[str, Path]:
     """Collect files to sync with layering: shared/ then project-specific/.
 
@@ -205,6 +262,9 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 0
+
+    # Check if briefcase is behind remote
+    check_briefcase_staleness(briefcase_dir)
 
     # Read current lock
     lock_path = Path(LOCK_FILE)
