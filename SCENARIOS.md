@@ -569,3 +569,40 @@ exit code:
 0
 ```
 
+
+## Symlink Support
+
+### 27. Symlinked project files are synced as copies
+
+```
+Scenario: Symlinked files in briefcase project folders are synced as regular copies
+
+Briefcase contents:
+projectA/AGENTS.md         → '# projectA agent rules' (real file)
+projectB/AGENTS.md         → symlink to projectA/AGENTS.md
+
+projectA stdout:
+  briefcase: synced AGENTS.md
+
+projectA exit code:
+0
+
+projectB stdout:
+  briefcase: synced AGENTS.md
+
+projectB exit code:
+0
+
+projectA AGENTS.md content:
+# projectA agent rules
+
+projectB AGENTS.md content:
+# projectA agent rules
+
+projectA AGENTS.md is symlink?:
+False
+
+projectB AGENTS.md is symlink?:
+False
+```
+

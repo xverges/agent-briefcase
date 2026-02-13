@@ -609,3 +609,42 @@ class TestStalenessDetection_9:
         story.add_frame("git fetch → ok\ngit rev-parse origin/main → fails (no remote ref)", "Briefcase git state")
         add_result(story, exit_code, stdout, stderr)
         verify(story)
+
+
+class TestSymlinkSupport_10:
+    def test_1_symlinked_project_files_are_synced_as_copies(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        # No shared/AGENTS.md — projectA owns the canonical file
+        write_file(briefcase / "config" / "projectA" / "AGENTS.md", "# projectA agent rules")
+
+        # projectB symlinks to projectA's file instead of duplicating it
+        (briefcase / "config" / "projectB").mkdir(parents=True)
+        (briefcase / "config" / "projectB" / "AGENTS.md").symlink_to(briefcase / "config" / "projectA" / "AGENTS.md")
+
+        target_a = tmp_path / "projectA"
+        target_a.mkdir()
+        target_b = tmp_path / "projectB"
+        target_b.mkdir()
+
+        exit_a, stdout_a, stderr_a = run_sync(briefcase, target_a)
+        exit_b, stdout_b, stderr_b = run_sync(briefcase, target_b)
+
+        # Both targets should have a regular file (not a symlink)
+        agents_a = target_a / "AGENTS.md"
+        agents_b = target_b / "AGENTS.md"
+
+        story = scenario("Symlinked files in briefcase project folders are synced as regular copies")
+        story.add_frame(
+            "projectA/AGENTS.md         → '# projectA agent rules' (real file)\n"
+            "projectB/AGENTS.md         → symlink to projectA/AGENTS.md",
+            "Briefcase contents",
+        )
+        story.add_frame(format_output(stdout_a), "projectA stdout")
+        story.add_frame(exit_a, "projectA exit code")
+        story.add_frame(format_output(stdout_b), "projectB stdout")
+        story.add_frame(exit_b, "projectB exit code")
+        story.add_frame(agents_a.read_text(), "projectA AGENTS.md content")
+        story.add_frame(agents_b.read_text(), "projectB AGENTS.md content")
+        story.add_frame(str(agents_a.is_symlink()), "projectA AGENTS.md is symlink?")
+        story.add_frame(str(agents_b.is_symlink()), "projectB AGENTS.md is symlink?")
+        verify(story)
