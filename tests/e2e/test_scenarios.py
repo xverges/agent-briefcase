@@ -626,8 +626,8 @@ class TestSymlinkSupport_10:
         target_b = tmp_path / "projectB"
         target_b.mkdir()
 
-        exit_a, stdout_a, stderr_a = run_sync(briefcase, target_a)
-        exit_b, stdout_b, stderr_b = run_sync(briefcase, target_b)
+        exit_a, stdout_a, _stderr_a = run_sync(briefcase, target_a)
+        exit_b, stdout_b, _stderr_b = run_sync(briefcase, target_b)
 
         # Both targets should have a regular file (not a symlink)
         agents_a = target_a / "AGENTS.md"
