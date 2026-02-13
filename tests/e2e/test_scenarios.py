@@ -5,10 +5,11 @@ from __future__ import annotations
 import json
 import os
 import stat
+import subprocess
 import textwrap
 from io import StringIO
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from approvaltests import verify
 from approvaltests.storyboard import Storyboard
@@ -25,8 +26,13 @@ def run_sync(
     target_dir: Path,
     project_name: str | None = None,
     shared: str = "shared",
+    subprocess_side_effect: object = None,
 ) -> tuple[int, str, str]:
-    """Run briefcase_sync.main() inside target_dir, capturing stdout/stderr."""
+    """Run briefcase_sync.main() inside target_dir, capturing stdout/stderr.
+
+    If subprocess_side_effect is given, subprocess.run is mocked with that
+    side_effect (useful for controlling git commands in staleness tests).
+    """
     project = project_name or target_dir.name
     argv = ["--briefcase", str(briefcase_dir), "--project", project, "--shared", shared]
 
@@ -35,7 +41,11 @@ def run_sync(
     try:
         os.chdir(target_dir)
         with patch("sys.stdout", stdout), patch("sys.stderr", stderr):
-            exit_code = briefcase_sync.main(argv)
+            if subprocess_side_effect is not None:
+                with patch("subprocess.run", side_effect=subprocess_side_effect):
+                    exit_code = briefcase_sync.main(argv)
+            else:
+                exit_code = briefcase_sync.main(argv)
     finally:
         os.chdir(original_cwd)
 
@@ -477,4 +487,125 @@ class TestLockFileIntegrity_8:
         story = scenario("Re-running sync with no changes is idempotent")
         add_result(story, exit_code, stdout, stderr)
         story.add_frame(target_tree(target), "Target directory (unchanged)")
+        verify(story)
+
+
+# ---------------------------------------------------------------------------
+# Staleness detection helpers
+# ---------------------------------------------------------------------------
+
+
+def _git_mock(
+    *,
+    local_sha: str = "aaa1111",
+    remote_sha: str | None = None,
+    behind_count: str = "0",
+    fetch_fails: bool = False,
+    not_a_repo: bool = False,
+    no_remote_ref: bool = False,
+):
+    """Build a subprocess.run side_effect that simulates git staleness scenarios."""
+
+    def fake_run(cmd, **kwargs):
+        cmd_str = " ".join(cmd)
+        if not_a_repo and ("rev-parse" in cmd_str or "fetch" in cmd_str):
+            raise subprocess.CalledProcessError(128, cmd)
+        if "fetch" in cmd_str:
+            if fetch_fails:
+                raise subprocess.CalledProcessError(1, cmd)
+            return MagicMock(returncode=0)
+        if "rev-parse HEAD" in cmd_str:
+            result = MagicMock()
+            result.stdout = local_sha + "\n"
+            return result
+        if "rev-parse origin/" in cmd_str:
+            if no_remote_ref:
+                raise subprocess.CalledProcessError(128, cmd)
+            result = MagicMock()
+            result.stdout = (remote_sha or local_sha) + "\n"
+            return result
+        if "rev-list --count" in cmd_str:
+            result = MagicMock()
+            result.stdout = behind_count + "\n"
+            return result
+        return MagicMock()
+
+    return fake_run
+
+
+class TestStalenessDetection_9:
+    def test_1_warns_when_briefcase_is_behind_remote(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        write_file(briefcase / "shared" / "CLAUDE.md", "# rules")
+
+        target = tmp_path / "my-project"
+        target.mkdir()
+
+        mock = _git_mock(local_sha="aaa1111", remote_sha="bbb2222", behind_count="3")
+        exit_code, stdout, stderr = run_sync(briefcase, target, subprocess_side_effect=mock)
+
+        story = scenario("Stale briefcase emits a warning but sync proceeds normally")
+        story.add_frame("local HEAD: aaa1111\nremote HEAD: bbb2222 (3 commits ahead)", "Briefcase git state")
+        add_result(story, exit_code, stdout, stderr)
+        story.add_frame(target_tree(target), "Target directory after sync")
+        verify(story)
+
+    def test_2_no_warning_when_up_to_date(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        write_file(briefcase / "shared" / "CLAUDE.md", "# rules")
+
+        target = tmp_path / "my-project"
+        target.mkdir()
+
+        mock = _git_mock(local_sha="aaa1111", remote_sha="aaa1111")
+        exit_code, stdout, stderr = run_sync(briefcase, target, subprocess_side_effect=mock)
+
+        story = scenario("Up-to-date briefcase produces no staleness warning")
+        story.add_frame("local HEAD: aaa1111\nremote HEAD: aaa1111 (same)", "Briefcase git state")
+        add_result(story, exit_code, stdout, stderr)
+        verify(story)
+
+    def test_3_no_warning_when_fetch_fails(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        write_file(briefcase / "shared" / "CLAUDE.md", "# rules")
+
+        target = tmp_path / "my-project"
+        target.mkdir()
+
+        mock = _git_mock(fetch_fails=True)
+        exit_code, stdout, stderr = run_sync(briefcase, target, subprocess_side_effect=mock)
+
+        story = scenario("Offline / fetch failure skips staleness check silently")
+        story.add_frame("git fetch → fails (e.g. no network)", "Briefcase git state")
+        add_result(story, exit_code, stdout, stderr)
+        verify(story)
+
+    def test_4_no_warning_when_not_a_git_repo(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        write_file(briefcase / "shared" / "CLAUDE.md", "# rules")
+
+        target = tmp_path / "my-project"
+        target.mkdir()
+
+        mock = _git_mock(not_a_repo=True)
+        exit_code, stdout, stderr = run_sync(briefcase, target, subprocess_side_effect=mock)
+
+        story = scenario("Non-git briefcase directory skips staleness check")
+        story.add_frame("git rev-parse → fails (not a git repo)", "Briefcase git state")
+        add_result(story, exit_code, stdout, stderr)
+        verify(story)
+
+    def test_5_no_warning_when_remote_ref_not_found(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        write_file(briefcase / "shared" / "CLAUDE.md", "# rules")
+
+        target = tmp_path / "my-project"
+        target.mkdir()
+
+        mock = _git_mock(no_remote_ref=True)
+        exit_code, stdout, stderr = run_sync(briefcase, target, subprocess_side_effect=mock)
+
+        story = scenario("Missing remote tracking branch skips staleness check")
+        story.add_frame("git fetch → ok\ngit rev-parse origin/main → fails (no remote ref)", "Briefcase git state")
+        add_result(story, exit_code, stdout, stderr)
         verify(story)

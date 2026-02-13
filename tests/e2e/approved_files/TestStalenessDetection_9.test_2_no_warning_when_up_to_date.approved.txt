@@ -1,0 +1,15 @@
+Scenario: Up-to-date briefcase produces no staleness warning
+
+Briefcase git state:
+local HEAD: aaa1111
+remote HEAD: aaa1111 (same)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+

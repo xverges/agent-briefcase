@@ -1,0 +1,15 @@
+Scenario: Missing remote tracking branch skips staleness check
+
+Briefcase git state:
+git fetch → ok
+git rev-parse origin/main → fails (no remote ref)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+

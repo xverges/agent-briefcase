@@ -44,7 +44,7 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.1.0
+    rev: v0.2.0
     hooks:
       - id: briefcase-sync
 ```
@@ -172,6 +172,23 @@ Briefcase intentionally does not have a built-in personal override system. If yo
 # .briefcase-post-sync.sh — my personal tweaks
 echo "## My extra rules" >> CLAUDE.md
 ```
+
+## Keeping the briefcase up to date
+
+The hook automatically runs `git fetch` on the briefcase repo and warns you if it's behind the remote:
+
+```
+briefcase: WARNING — briefcase repo is 3 commit(s) behind origin/main. Run `git -C ../agent-briefcase pull` to get the latest team config.
+```
+
+The sync still proceeds with whatever is checked out locally — the warning is informational only. To pick up the latest team configuration:
+
+```bash
+git -C ../agent-briefcase pull    # update the briefcase repo
+pre-commit run briefcase-sync --hook-stage post-checkout   # re-sync
+```
+
+If the fetch fails (e.g. you're offline), the staleness check is silently skipped.
 
 ## CI / missing briefcase
 
