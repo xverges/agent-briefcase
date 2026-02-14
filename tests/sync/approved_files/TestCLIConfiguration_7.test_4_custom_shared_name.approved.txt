@@ -1,0 +1,20 @@
+Scenario: Custom --shared folder name uses the specified folder instead of '_shared/'
+
+Briefcase contents:
+briefcase/common/CLAUDE.md    (should sync)
+briefcase/_shared/IGNORED.md  (should NOT sync)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+Target directory after sync:
+.briefcase.lock
+.gitignore
+CLAUDE.md
+

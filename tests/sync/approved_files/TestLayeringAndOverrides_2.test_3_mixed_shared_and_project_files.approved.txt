@@ -1,7 +1,7 @@
 Scenario: Shared and project-specific files are both synced
 
 Briefcase contents:
-shared/.claude/commands/review.md  (from shared)
+_shared/.claude/commands/review.md  (from _shared)
 my-project/CLAUDE.md                (from project)
 
 stdout:

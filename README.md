@@ -8,7 +8,10 @@ Share your team's AI agent knowledge across every repo.
 
 ## The problem
 
-Teams using AI coding agents accumulate valuable configuration — prompts, slash commands, rules, MCP server setups — but it stays trapped in individual repos. Developers in projectB don't know that projectA has a great code review command. New team members start from scratch. Good practices don't spread.
+Teams using AI coding agents accumulate valuable configuration — prompts, slash commands, rules,
+MCP server setups — but it stays trapped in individual repos. Developers in projectB don't know
+that projectA has a great code review command. Agent-related dotfiles remain hidden in home
+folders. Good practices don't spread.
 
 ## How it works
 
@@ -19,7 +22,7 @@ Configuration is organized with a simple convention:
 ```
 your-briefcase-repo/
 ├── config/
-│   ├── shared/              # applies to all projects
+│   ├── _shared/             # applies to all projects
 │   │   └── .claude/
 │   │       └── commands/
 │   │           └── review.md
@@ -28,16 +31,17 @@ your-briefcase-repo/
 │   └── projectB/
 │       └── CLAUDE.md
 ├── docs/                    # non-config content lives alongside
+├── dotfiles/                # dotfiles that team members chose to share (not-synchronized)
 └── README.md
 ```
 
-All synced content lives under `config/`. Files in `config/shared/` are synced to every project. Files in a project-specific folder override shared files when both exist at the same path. The rest of the repo is yours — docs, guides, scripts, etc.
+All synced content lives under `config/`. Files in `config/_shared/` are synced to every project. Files in a project-specific folder override shared files when both exist at the same path. Folders prefixed with `_` are reserved for special purposes and are never treated as project names. The rest of the repo is yours — docs, guides, scripts, etc.
 
 ## Quick start
 
 ### 1. Set up your briefcase repo
 
-Create a new repo with a `config/` folder containing a `shared/` folder and per-project folders as needed. The project folder names must match the directory names of your target repos (or use `--project` to map them explicitly).
+Create a new repo with a `config/` folder containing a `_shared/` folder and per-project folders as needed. The project folder names must match the directory names of your target repos (or use `--project` to map them explicitly).
 
 ### 2. Add the hook to your target repos
 
@@ -65,8 +69,8 @@ By default the briefcase repo must be a sibling directory named `agent-briefcase
 ```
 ~/code/
 ├── agent-briefcase/     # your briefcase repo (config/ folder inside)
-├── projectA/            # target repo — gets files from config/shared/ + config/projectA/
-└── projectB/            # target repo — gets files from config/shared/ + config/projectB/
+├── projectA/            # target repo — gets files from config/_shared/ + config/projectA/
+└── projectB/            # target repo — gets files from config/_shared/ + config/projectB/
 ```
 
 That's it. On every `git checkout` or `git merge` in a target repo, the hook syncs the relevant files automatically.
@@ -81,14 +85,14 @@ hooks:
     args:
       - --briefcase=../my-team-briefcase   # relative or absolute path to the briefcase repo
       - --project=projectA-v3              # override the auto-detected project folder name
-      - --shared=shared-front-end          # override the shared folder name (default: "shared")
+      - --shared=_shared-front-end          # override the shared folder name (default: "_shared")
 ```
 
 | Option | Default | Description |
 |---|---|---|
 | `--briefcase` | Sibling dir named `agent-briefcase` | Path (relative or absolute) to the briefcase repo. |
 | `--project` | Target repo's directory name | Which folder inside `config/` to use for project-specific files. |
-| `--shared` | `shared` | Which folder inside `config/` to use for shared files. |
+| `--shared` | `_shared` | Which folder inside `config/` to use for shared files. |
 
 ### Examples
 
@@ -98,14 +102,14 @@ hooks:
 args: [--briefcase=/opt/team/briefcase]
 ```
 
-**Multiple shared layers** — you have `config/shared-frontend` and `config/shared-backend` instead of `config/shared`:
+**Multiple shared layers** — you have `config/_shared-frontend` and `config/_shared-backend` instead of `config/_shared`:
 
 ```yaml
 # In your frontend repos:
-args: [--shared=shared-frontend]
+args: [--shared=_shared-frontend]
 
 # In your backend repos:
-args: [--shared=shared-backend]
+args: [--shared=_shared-backend]
 ```
 
 **Project name mismatch** — your repo is called `app-v3` but the briefcase folder is `app`:
@@ -125,11 +129,11 @@ These are the two moments when your working tree changes due to git operations. 
 
 ## Layering
 
-When both `config/shared/` and a project-specific folder contain a file at the same path, the project-specific version wins:
+When both `config/_shared/` and a project-specific folder contain a file at the same path, the project-specific version wins:
 
 ```
-config/shared/CLAUDE.md       →  base version for all projects
-config/projectA/CLAUDE.md     →  overrides shared/CLAUDE.md in projectA only
+config/_shared/CLAUDE.md      →  base version for all projects
+config/projectA/CLAUDE.md     →  overrides _shared/CLAUDE.md in projectA only
 ```
 
 ## The lock file
@@ -225,7 +229,7 @@ pre-commit run briefcase-sync --hook-stage post-checkout
 
 ## Behavior reference
 
-See [SCENARIOS.md](SCENARIOS.md) for a full catalog of how briefcase handles every sync situation — fresh syncs, layering, local modifications, missing repos, and more. Auto-generated from end-to-end tests.
+See [SCENARIOS-sync.md](SCENARIOS-sync.md) for a full catalog of how briefcase handles every sync situation — fresh syncs, layering, local modifications, missing repos, and more. Auto-generated from end-to-end tests.
 
 ## Development
 

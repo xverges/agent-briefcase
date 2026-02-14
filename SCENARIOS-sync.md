@@ -1,4 +1,4 @@
-# Briefcase-Sync E2E Scenarios
+# Briefcase-Sync Scenarios
 
 > **Auto-generated** from approved test output — do not edit by hand.
 > Re-run `pytest` to regenerate.
@@ -12,8 +12,8 @@
 Scenario: Fresh sync copies all files when no prior state exists
 
 Briefcase contents:
-briefcase/shared/CLAUDE.md
-briefcase/shared/.claude/commands/review.md
+briefcase/_shared/CLAUDE.md
+briefcase/_shared/.claude/commands/review.md
 
 stdout:
   briefcase: synced .claude/commands/review.md
@@ -119,10 +119,10 @@ exit code:
 ### 5. Shared only sync
 
 ```
-Scenario: Files sync from shared/ when no project-specific folder exists
+Scenario: Files sync from _shared/ when no project-specific folder exists
 
 Briefcase contents:
-briefcase/shared/CLAUDE.md
+briefcase/_shared/CLAUDE.md
 (no my-project/ folder)
 
 stdout:
@@ -146,7 +146,7 @@ CLAUDE.md
 Scenario: Project-specific files override shared files at the same path
 
 Briefcase contents:
-shared/CLAUDE.md       → '# shared version'
+_shared/CLAUDE.md      → '# shared version'
 my-project/CLAUDE.md   → '# project-specific version'
 
 stdout:
@@ -168,7 +168,7 @@ CLAUDE.md in target (project wins):
 Scenario: Shared and project-specific files are both synced
 
 Briefcase contents:
-shared/.claude/commands/review.md  (from shared)
+_shared/.claude/commands/review.md  (from _shared)
 my-project/CLAUDE.md                (from project)
 
 stdout:
@@ -429,11 +429,11 @@ CLAUDE.md content (env var wins):
 ### 20. Custom shared name
 
 ```
-Scenario: Custom --shared folder name uses the specified folder instead of 'shared/'
+Scenario: Custom --shared folder name uses the specified folder instead of '_shared/'
 
 Briefcase contents:
-briefcase/common/CLAUDE.md   (should sync)
-briefcase/shared/IGNORED.md  (should NOT sync)
+briefcase/common/CLAUDE.md    (should sync)
+briefcase/_shared/IGNORED.md  (should NOT sync)
 
 stdout:
   briefcase: synced CLAUDE.md
@@ -463,7 +463,7 @@ Scenario: Lock file records source commit and file hashes after sync
   "files": {
     "CLAUDE.md": {
       "sha256": "48647359ca75884b1961da7492f6f4da987a8cd99f5d4c32139b9e92595b0f15",
-      "source": "config/shared/CLAUDE.md"
+      "source": "config/_shared/CLAUDE.md"
     }
   },
   "source_commit": "<commit>"
