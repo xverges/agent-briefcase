@@ -9,6 +9,7 @@ dependencies = []
 
 [project.scripts]
 briefcase-sync = "briefcase_sync:main"
+briefcase-build = "briefcase_build:main"
 
 [project.optional-dependencies]
 test = [
@@ -21,7 +22,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["briefcase_sync"]
+py-modules = ["briefcase_sync", "briefcase_build"]
 
 [tool.ruff]
 target-version = "py310"

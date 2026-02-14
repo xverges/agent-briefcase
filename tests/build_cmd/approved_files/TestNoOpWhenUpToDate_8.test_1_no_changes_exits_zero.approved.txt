@@ -1,0 +1,11 @@
+Scenario: Re-running build with no changes exits 0 (up to date)
+
+stdout:
+    unchanged: _shared/CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+

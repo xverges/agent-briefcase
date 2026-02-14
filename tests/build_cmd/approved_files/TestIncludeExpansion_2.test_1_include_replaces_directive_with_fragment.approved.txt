@@ -1,0 +1,32 @@
+Scenario: Include directive is replaced by the fragment file contents
+
+config-src/_shared/CLAUDE.md (source):
+# Rules
+
+{{include debug.md}}
+
+## Other
+Done.
+
+config-src/_includes/debug.md (fragment):
+## Debug
+Use verbose logging.
+
+stdout:
+    created: _shared/CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+1
+
+config/_shared/CLAUDE.md (built):
+# Rules
+
+## Debug
+Use verbose logging.
+
+## Other
+Done.
+

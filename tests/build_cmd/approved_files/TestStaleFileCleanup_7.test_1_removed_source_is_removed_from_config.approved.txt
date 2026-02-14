@@ -1,0 +1,22 @@
+Scenario: File removed from config-src/ is cleaned up from config/
+
+config/ before (both files):
+_shared/CLAUDE.md
+_shared/extra.md
+
+Change:
+config-src/_shared/extra.md deleted
+
+stdout:
+    unchanged: _shared/CLAUDE.md
+    removed: _shared/extra.md
+
+stderr:
+(empty)
+
+exit code:
+1
+
+config/ after (extra.md removed):
+_shared/CLAUDE.md
+

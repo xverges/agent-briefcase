@@ -1,0 +1,19 @@
+Scenario: Fragment files from _includes/ do not appear in config/ output
+
+config-src/ contents:
+_includes/debug.md
+_includes/testing.md
+_shared/CLAUDE.md
+
+stdout:
+    created: _shared/CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+1
+
+config/ after build (no _includes/):
+_shared/CLAUDE.md
+
