@@ -8,7 +8,10 @@ Share your team's AI agent knowledge across every repo.
 
 ## The problem
 
-Teams using AI coding agents accumulate valuable configuration — prompts, slash commands, rules, MCP server setups — but it stays trapped in individual repos. Developers in projectB don't know that projectA has a great code review command. New team members start from scratch. Good practices don't spread.
+Teams using AI coding agents accumulate valuable configuration — prompts, slash commands, rules,
+MCP server setups — but it stays trapped in individual repos. Developers in projectB don't know
+that projectA has a great code review command. Agent-related dotfiles remain hidden in home
+folders. Good practices don't spread.
 
 ## How it works
 
@@ -28,6 +31,7 @@ your-briefcase-repo/
 │   └── projectB/
 │       └── CLAUDE.md
 ├── docs/                    # non-config content lives alongside
+├── dotfiles/                # dotfiles that team members chose to share (not-synchronized)
 └── README.md
 ```
 
