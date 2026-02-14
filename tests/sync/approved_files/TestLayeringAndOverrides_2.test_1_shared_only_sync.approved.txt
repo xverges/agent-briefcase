@@ -1,7 +1,7 @@
-Scenario: Files sync from shared/ when no project-specific folder exists
+Scenario: Files sync from _shared/ when no project-specific folder exists
 
 Briefcase contents:
-briefcase/shared/CLAUDE.md
+briefcase/_shared/CLAUDE.md
 (no my-project/ folder)
 
 stdout:

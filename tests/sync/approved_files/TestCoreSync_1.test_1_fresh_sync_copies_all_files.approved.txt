@@ -1,8 +1,8 @@
 Scenario: Fresh sync copies all files when no prior state exists
 
 Briefcase contents:
-briefcase/shared/CLAUDE.md
-briefcase/shared/.claude/commands/review.md
+briefcase/_shared/CLAUDE.md
+briefcase/_shared/.claude/commands/review.md
 
 stdout:
   briefcase: synced .claude/commands/review.md

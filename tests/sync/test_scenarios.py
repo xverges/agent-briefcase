@@ -25,7 +25,7 @@ def run_sync(
     briefcase_dir: Path,
     target_dir: Path,
     project_name: str | None = None,
-    shared: str = "shared",
+    shared: str = "_shared",
     subprocess_side_effect: object = None,
 ) -> tuple[int, str, str]:
     """Run briefcase_sync.main() inside target_dir, capturing stdout/stderr.
@@ -121,8 +121,8 @@ def add_result(story: Storyboard, exit_code: int, stdout: str, stderr: str) -> N
 class TestCoreSync_1:
     def test_1_fresh_sync_copies_all_files(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# shared rules")
-        write_file(briefcase / "config" / "shared" / ".claude" / "commands" / "review.md", "/review command")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# shared rules")
+        write_file(briefcase / "config" / "_shared" / ".claude" / "commands" / "review.md", "/review command")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -131,7 +131,7 @@ class TestCoreSync_1:
 
         story = scenario("Fresh sync copies all files when no prior state exists")
         story.add_frame(
-            "briefcase/shared/CLAUDE.md\nbriefcase/shared/.claude/commands/review.md",
+            "briefcase/_shared/CLAUDE.md\nbriefcase/_shared/.claude/commands/review.md",
             "Briefcase contents",
         )
         add_result(story, exit_code, stdout, stderr)
@@ -141,13 +141,13 @@ class TestCoreSync_1:
 
     def test_2_incremental_sync_new_file_added(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
 
         run_sync(briefcase, target)
-        write_file(briefcase / "config" / "shared" / "new-file.md", "# new content")
+        write_file(briefcase / "config" / "_shared" / "new-file.md", "# new content")
         exit_code, stdout, stderr = run_sync(briefcase, target)
 
         story = scenario("Incremental sync picks up newly added files")
@@ -158,14 +158,14 @@ class TestCoreSync_1:
 
     def test_3_incremental_sync_file_removed(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
-        write_file(briefcase / "config" / "shared" / ".claude" / "commands" / "review.md", "/review")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / ".claude" / "commands" / "review.md", "/review")
 
         target = tmp_path / "my-project"
         target.mkdir()
 
         run_sync(briefcase, target)
-        (briefcase / "config" / "shared" / ".claude" / "commands" / "review.md").unlink()
+        (briefcase / "config" / "_shared" / ".claude" / "commands" / "review.md").unlink()
         exit_code, stdout, stderr = run_sync(briefcase, target)
 
         story = scenario("Removing a file from the briefcase cleans it up in the target")
@@ -177,14 +177,14 @@ class TestCoreSync_1:
 
     def test_4_incremental_sync_file_updated(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# version 1")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# version 1")
 
         target = tmp_path / "my-project"
         target.mkdir()
 
         run_sync(briefcase, target)
         content_before = (target / "CLAUDE.md").read_text()
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# version 2")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# version 2")
         exit_code, stdout, stderr = run_sync(briefcase, target)
         content_after = (target / "CLAUDE.md").read_text()
 
@@ -197,22 +197,22 @@ class TestCoreSync_1:
 class TestLayeringAndOverrides_2:
     def test_1_shared_only_sync(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# shared config")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# shared config")
 
         target = tmp_path / "my-project"
         target.mkdir()
 
         exit_code, stdout, stderr = run_sync(briefcase, target)
 
-        story = scenario("Files sync from shared/ when no project-specific folder exists")
-        story.add_frame("briefcase/shared/CLAUDE.md\n(no my-project/ folder)", "Briefcase contents")
+        story = scenario("Files sync from _shared/ when no project-specific folder exists")
+        story.add_frame("briefcase/_shared/CLAUDE.md\n(no my-project/ folder)", "Briefcase contents")
         add_result(story, exit_code, stdout, stderr)
         story.add_frame(target_tree(target), "Target directory after sync")
         verify(story)
 
     def test_2_project_overrides_shared(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# shared version")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# shared version")
         write_file(briefcase / "config" / "my-project" / "CLAUDE.md", "# project-specific version")
 
         target = tmp_path / "my-project"
@@ -223,7 +223,7 @@ class TestLayeringAndOverrides_2:
 
         story = scenario("Project-specific files override shared files at the same path")
         story.add_frame(
-            "shared/CLAUDE.md       → '# shared version'\nmy-project/CLAUDE.md   → '# project-specific version'",
+            "_shared/CLAUDE.md      → '# shared version'\nmy-project/CLAUDE.md   → '# project-specific version'",
             "Briefcase contents",
         )
         add_result(story, exit_code, stdout, stderr)
@@ -232,7 +232,7 @@ class TestLayeringAndOverrides_2:
 
     def test_3_mixed_shared_and_project_files(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / ".claude" / "commands" / "review.md", "/review from shared")
+        write_file(briefcase / "config" / "_shared" / ".claude" / "commands" / "review.md", "/review from shared")
         write_file(briefcase / "config" / "my-project" / "CLAUDE.md", "# project CLAUDE.md")
 
         target = tmp_path / "my-project"
@@ -242,7 +242,7 @@ class TestLayeringAndOverrides_2:
 
         story = scenario("Shared and project-specific files are both synced")
         story.add_frame(
-            "shared/.claude/commands/review.md  (from shared)\nmy-project/CLAUDE.md                (from project)",
+            "_shared/.claude/commands/review.md  (from _shared)\nmy-project/CLAUDE.md                (from project)",
             "Briefcase contents",
         )
         add_result(story, exit_code, stdout, stderr)
@@ -253,14 +253,14 @@ class TestLayeringAndOverrides_2:
 class TestLocalModificationProtection_3:
     def test_1_locally_modified_file_is_preserved(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# from briefcase")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# from briefcase")
 
         target = tmp_path / "my-project"
         target.mkdir()
 
         run_sync(briefcase, target)
         (target / "CLAUDE.md").write_text("# my local edits")
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# updated in briefcase")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# updated in briefcase")
         exit_code, stdout, stderr = run_sync(briefcase, target)
         final_content = (target / "CLAUDE.md").read_text()
 
@@ -275,13 +275,13 @@ class TestLocalModificationProtection_3:
 
     def test_2_unmodified_file_is_updated(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# v1")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# v1")
 
         target = tmp_path / "my-project"
         target.mkdir()
 
         run_sync(briefcase, target)
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# v2")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# v2")
         exit_code, stdout, stderr = run_sync(briefcase, target)
         final_content = (target / "CLAUDE.md").read_text()
 
@@ -294,8 +294,8 @@ class TestLocalModificationProtection_3:
 class TestGitignoreManagement_4:
     def test_1_synced_files_added_to_gitignore(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
-        write_file(briefcase / "config" / "shared" / ".claude" / "commands" / "review.md", "/review")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / ".claude" / "commands" / "review.md", "/review")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -308,15 +308,15 @@ class TestGitignoreManagement_4:
 
     def test_2_removed_files_cleaned_from_gitignore(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
-        write_file(briefcase / "config" / "shared" / "extra.md", "# extra")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "extra.md", "# extra")
 
         target = tmp_path / "my-project"
         target.mkdir()
 
         run_sync(briefcase, target)
         gitignore_before = read_gitignore(target)
-        (briefcase / "config" / "shared" / "extra.md").unlink()
+        (briefcase / "config" / "_shared" / "extra.md").unlink()
         run_sync(briefcase, target)
         gitignore_after = read_gitignore(target)
 
@@ -327,7 +327,7 @@ class TestGitignoreManagement_4:
 
     def test_3_existing_gitignore_content_preserved(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -343,7 +343,7 @@ class TestGitignoreManagement_4:
 class TestPostSyncHook_5:
     def test_1_post_sync_hook_runs(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -364,7 +364,7 @@ class TestPostSyncHook_5:
 
     def test_2_no_post_sync_hook_is_noop(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -407,7 +407,7 @@ class TestGracefulDegradation_6:
 class TestCLIConfiguration_7:
     def test_1_custom_briefcase_path(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "somewhere" / "else" / "my-briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# from custom path")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# from custom path")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -443,10 +443,10 @@ class TestCLIConfiguration_7:
     def test_3_env_var_overrides_cli_briefcase_path(self, tmp_path: Path) -> None:
         """BRIEFCASE_PATH env var takes precedence over --briefcase."""
         cli_briefcase = tmp_path / "cli-briefcase"
-        write_file(cli_briefcase / "config" / "shared" / "CLAUDE.md", "# from CLI path")
+        write_file(cli_briefcase / "config" / "_shared" / "CLAUDE.md", "# from CLI path")
 
         env_briefcase = tmp_path / "env-briefcase"
-        write_file(env_briefcase / "config" / "shared" / "CLAUDE.md", "# from BRIEFCASE_PATH")
+        write_file(env_briefcase / "config" / "_shared" / "CLAUDE.md", "# from BRIEFCASE_PATH")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -468,16 +468,16 @@ class TestCLIConfiguration_7:
     def test_4_custom_shared_name(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
         write_file(briefcase / "config" / "common" / "CLAUDE.md", "# from common/")
-        write_file(briefcase / "config" / "shared" / "IGNORED.md", "# should not sync")
+        write_file(briefcase / "config" / "_shared" / "IGNORED.md", "# should not sync")
 
         target = tmp_path / "my-project"
         target.mkdir()
 
         exit_code, stdout, stderr = run_sync(briefcase, target, shared="common")
 
-        story = scenario("Custom --shared folder name uses the specified folder instead of 'shared/'")
+        story = scenario("Custom --shared folder name uses the specified folder instead of '_shared/'")
         story.add_frame(
-            "briefcase/common/CLAUDE.md   (should sync)\nbriefcase/shared/IGNORED.md  (should NOT sync)",
+            "briefcase/common/CLAUDE.md    (should sync)\nbriefcase/_shared/IGNORED.md  (should NOT sync)",
             "Briefcase contents",
         )
         add_result(story, exit_code, stdout, stderr)
@@ -488,7 +488,7 @@ class TestCLIConfiguration_7:
 class TestLockFileIntegrity_8:
     def test_1_lock_file_records_state(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -501,7 +501,7 @@ class TestLockFileIntegrity_8:
 
     def test_2_idempotent_sync_no_changes(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -561,7 +561,7 @@ def _git_mock(
 class TestStalenessDetection_9:
     def test_1_warns_when_briefcase_is_behind_remote(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -577,7 +577,7 @@ class TestStalenessDetection_9:
 
     def test_2_no_warning_when_up_to_date(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -592,7 +592,7 @@ class TestStalenessDetection_9:
 
     def test_3_no_warning_when_fetch_fails(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -607,7 +607,7 @@ class TestStalenessDetection_9:
 
     def test_4_no_warning_when_not_a_git_repo(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -622,7 +622,7 @@ class TestStalenessDetection_9:
 
     def test_5_no_warning_when_remote_ref_not_found(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        write_file(briefcase / "config" / "shared" / "CLAUDE.md", "# rules")
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
         target = tmp_path / "my-project"
         target.mkdir()
@@ -639,7 +639,7 @@ class TestStalenessDetection_9:
 class TestSymlinkSupport_10:
     def test_1_symlinked_project_files_are_synced_as_copies(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
-        # No shared/AGENTS.md — projectA owns the canonical file
+        # No _shared/AGENTS.md — projectA owns the canonical file
         write_file(briefcase / "config" / "projectA" / "AGENTS.md", "# projectA agent rules")
 
         # projectB symlinks to projectA's file instead of duplicating it

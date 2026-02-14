@@ -17,7 +17,7 @@ MARKER_BEGIN = "# BEGIN briefcase-managed (do not edit this section)"
 MARKER_END = "# END briefcase-managed"
 DEFAULT_BRIEFCASE_DIR_NAME = "agent-briefcase"
 CONFIG_DIR = "config"
-DEFAULT_SHARED_FOLDER = "shared"
+DEFAULT_SHARED_FOLDER = "_shared"
 
 
 def hash_file(path: Path) -> str:
