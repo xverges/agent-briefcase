@@ -52,6 +52,12 @@ def _test_title(test_name: str) -> str:
     return stripped.replace("_", " ").capitalize()
 
 
+def _fence_for(content: str) -> str:
+    """Return a backtick fence longer than any backtick run in *content*."""
+    max_run = max((len(m.group()) for m in re.finditer(r"`+", content)), default=0)
+    return "`" * max(3, max_run + 1)
+
+
 def generate_report(*, title: str, approved_dir: Path, output_path: Path) -> None:
     """Generate a SCENARIOS markdown file from approved test output files."""
     entries: list[tuple[str | None, str, Path]] = []
@@ -82,9 +88,10 @@ def generate_report(*, title: str, approved_dir: Path, output_path: Path) -> Non
         lines.append(f"\n## {section_title}\n")
         for test_name, path in tests:
             content = path.read_text().strip()
+            fence = _fence_for(content)
             title_text = _test_title(test_name)
             lines.append(f"### {scenario_num}. {title_text}\n")
-            lines.append(f"```\n{content}\n```\n")
+            lines.append(f"{fence}\n{content}\n{fence}\n")
             scenario_num += 1
 
     output_path.write_text("\n".join(lines) + "\n")

@@ -1,0 +1,42 @@
+Scenario: BRIEFCASE.md contains operational guide for the team
+
+BRIEFCASE.md:
+# Team Briefcase
+
+This repo holds your team's shared AI agent configuration. It is managed by
+[agent-briefcase](https://github.com/xverges/agent-briefcase).
+
+## Directory structure
+
+| Directory | Purpose |
+|---|---|
+| `config-src/_shared/` | Configuration that syncs to **all** target repos. |
+| `config-src/<project>/` | Configuration that syncs only to the matching repo. |
+| `config-src/_includes/` | Reusable fragments referenced by `{{include <file>}}` directives. |
+| `config/` | **Generated** — do not edit directly. Built from `config-src/` on every commit. |
+| `dotfiles/` | A place to share personal dotfiles with the team. Not managed by briefcase. |
+
+## Editing configuration
+
+1. Edit files under `config-src/`.
+2. Use `{{include <file>}}` to pull in fragments from `_includes/`.
+3. Preview the result with `pre-commit run briefcase-build --all-files`.
+4. Commit — the `briefcase-build` pre-commit hook assembles `config/` automatically.
+
+## Adding the sync hook to a target repo
+
+In the target repo's `.pre-commit-config.yaml`:
+
+```yaml
+default_install_hook_types: [post-checkout, post-merge]
+repos:
+  - repo: https://github.com/xverges/agent-briefcase
+    rev: v0.4.0
+    hooks:
+      - id: briefcase-sync
+        args: [--briefcase=../briefcase]
+```
+
+Then run `pre-commit install`.
+
+
