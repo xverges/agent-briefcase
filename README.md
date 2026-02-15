@@ -66,7 +66,7 @@ Create a `.pre-commit-config.yaml` with the following content:
 ```yaml
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.7.0
+    rev: v0.8.0
     hooks:
       - id: briefcase-init
         stages: [manual]
@@ -136,10 +136,10 @@ When you commit, `briefcase-build` runs automatically as a pre-commit hook — i
 In each target repo's `.pre-commit-config.yaml`:
 
 ```yaml
-default_install_hook_types: [post-checkout, post-merge]
+default_install_hook_types: [pre-commit, post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.7.0
+    rev: v0.8.0
     hooks:
       - id: briefcase-sync
         args: [--briefcase=../team-briefcase]
@@ -150,6 +150,8 @@ Then run:
 ```bash
 pre-commit install
 ```
+
+> **Note:** `default_install_hook_types` controls which hook types `pre-commit install` sets up. The default when omitted is `[pre-commit]`, so you must include `pre-commit` in the list to keep your existing hooks working. If you update this setting after having already run `pre-commit install`, you need to re-run it to pick up the new hook types.
 
 ### 4. Clone both repos as siblings
 
