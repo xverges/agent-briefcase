@@ -27,12 +27,12 @@ There are three steps:
    copies the relevant `config/` files into the working tree.
 
 ```
-                    briefcase repo                          target repos
-                    ─────────────                           ────────────
-  briefcase-init ▸  config-src/  ──build──▸  config/  ──sync──▸  projectA/
-                      _includes/               _shared/           projectB/
-                      _shared/                 projectA/           ...
-                      projectA/                projectB/
+        briefcase repo                                  target repos
+        ────────────────────────────────────            ──────────────────
+init ─▸ config-src/  ──build──▸  config/
+          _includes/               _shared/
+          _shared/                 projectA/  ──sync──▸ AGENT.md+ for projectA
+          projectA/                projectB/  ──sync──▸ AGENT.md+ for projectB
 ```
 
 The briefcase repo commits the generated `config/`. Target repos receive

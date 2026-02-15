@@ -43,12 +43,12 @@ There are three steps:
 3. **Sync** (every checkout/merge of a target repo) — `config/` files are copied into the working tree. Shared files go everywhere; project-specific files go only to matching repos.
 
 ```
-                    briefcase repo                          target repos
-                    ─────────────                           ────────────
-  briefcase-init ▸  config-src/  ──build──▸  config/  ──sync──▸  projectA/
-                      _includes/               _shared/           projectB/
-                      _shared/                 projectA/           ...
-                      projectA/                projectB/
+        briefcase repo                                  target repos
+        ────────────────────────────────────            ──────────────────
+init ─▸ config-src/  ──build──▸  config/
+          _includes/               _shared/
+          _shared/                 projectA/  ──sync──▸ AGENT.md+ for projectA
+          projectA/                projectB/  ──sync──▸ AGENT.md+ for projectB
 ```
 
 The briefcase repo commits generated config. Target repos receive ephemeral copies that are gitignored.
@@ -66,7 +66,7 @@ Create a `.pre-commit-config.yaml` with the following content:
 ```yaml
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.5.0
+    rev: v0.6.0
     hooks:
       - id: briefcase-init
         stages: [manual]
@@ -139,7 +139,7 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.5.0
+    rev: v0.6.0
     hooks:
       - id: briefcase-sync
         args: [--briefcase=../team-briefcase]
@@ -359,6 +359,18 @@ To run the full CI suite locally (lint + tests across Python 3.10–3.13):
 
 ```bash
 uv tool run nox
+```
+
+### Approving test changes
+
+Tests use [approvaltests](https://github.com/approvals/ApprovalTests.Python). When a test produces new or changed output, it writes a `.received.txt` file next to the existing `.approved.txt` file and the test fails. To approve the new output:
+
+```bash
+# Review the diff
+diff tests/**/approved_files/*.approved.txt tests/**/approved_files/*.received.txt
+
+# Accept the changes by replacing approved files with received files
+for f in $(find tests -name '*.received.txt'); do mv "$f" "${f/received/approved}"; done
 ```
 
 ### Releasing
