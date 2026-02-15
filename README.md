@@ -11,7 +11,24 @@ Share your team's AI agent knowledge across every repo.
 Teams using AI coding agents accumulate valuable configuration — prompts, slash commands, rules,
 MCP server setups — but it stays trapped in individual repos. Developers in projectB don't know
 that projectA has a great code review command. Agent-related dotfiles remain hidden in home
-folders. Good practices don't spread.
+folders. Good practices don't spread. And with every assistant expecting its own config file format, keeping guidance consistent across tools is yet another burden.
+
+## The config file maze
+
+Every AI coding assistant has its own convention for where project instructions live:
+
+| Assistant | Config file(s) |
+|---|---|
+| Claude Code | `CLAUDE.md`, `.claude/commands/*.md`, `.claude/settings.local.json` |
+| Cursor | `.cursorrules` |
+| Windsurf | `.windsurf/rules/*.md` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Cline | `.clinerules` |
+| Aider | `.aider.conf.yml`, `CONVENTIONS.md` |
+
+Teams using more than one assistant end up maintaining the same guidance in multiple places — and they inevitably drift apart. A code-style rule added to `CLAUDE.md` never makes it to `.cursorrules`. A testing convention in `.github/copilot-instructions.md` is missing from `.clinerules`.
+
+`agent-briefcase` solves this by letting you author shared fragments once and compose them into each assistant's config file. Update the fragment, and every assistant's config gets the change on the next build.
 
 ## How it works
 
