@@ -31,8 +31,8 @@ There are three steps:
         ────────────────────────────────────            ──────────────────
 init ─▸ config-src/  ──build──▸  config/
           _includes/               _shared/
-          _shared/                 projectA/  ──sync──▸ AGENT.md+ for projectA
-          projectA/                projectB/  ──sync──▸ AGENT.md+ for projectB
+          _shared/                 projectA/  ──sync──▸ AGENTS.md+ for projectA
+          projectA/                projectB/  ──sync──▸ AGENTS.md+ for projectB
 ```
 
 The briefcase repo commits the generated `config/`. Target repos receive
