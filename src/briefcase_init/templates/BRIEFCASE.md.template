@@ -60,7 +60,7 @@ ephemeral copies that are gitignored.
 In the target repo's `.pre-commit-config.yaml`:
 
 ```yaml
-default_install_hook_types: [post-checkout, post-merge]
+default_install_hook_types: [pre-commit, post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
     rev: $VERSION
@@ -70,3 +70,5 @@ repos:
 ```
 
 Then run `pre-commit install`.
+
+> **Note:** `default_install_hook_types` controls which hook types `pre-commit install` sets up. The default when omitted is `[pre-commit]`, so you must include `pre-commit` in the list to keep your existing hooks working. If you update this setting after having already run `pre-commit install`, you need to re-run it to pick up the new hook types.
