@@ -15,7 +15,7 @@ LOCK_FILE = ".briefcase.lock"
 POST_SYNC_HOOK = ".briefcase-post-sync.sh"
 MARKER_BEGIN = "# BEGIN briefcase-managed (do not edit this section)"
 MARKER_END = "# END briefcase-managed"
-DEFAULT_BRIEFCASE_DIR_NAME = "agent-briefcase"
+DEFAULT_BRIEFCASE_DIR_NAME = "team-briefcase"
 CONFIG_DIR = "config"
 DEFAULT_SHARED_FOLDER = "_shared"
 

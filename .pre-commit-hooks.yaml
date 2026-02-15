@@ -6,3 +6,21 @@
   stages: [post-checkout, post-merge]
   always_run: true
   pass_filenames: false
+
+- id: briefcase-init
+  name: briefcase-init
+  description: Scaffold a new briefcase repo with directory structure and guides
+  entry: briefcase-init
+  language: python
+  stages: [manual]
+  always_run: true
+  pass_filenames: false
+
+- id: briefcase-build
+  name: briefcase-build
+  description: Build config/ from config-src/ templates with include expansion
+  entry: briefcase-build
+  language: python
+  stages: [pre-commit]
+  always_run: true
+  pass_filenames: false

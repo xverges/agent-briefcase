@@ -1,0 +1,14 @@
+Scenario: No config-src/ directory is a no-op (exits 0 with a message)
+
+Setup:
+(no config-src/ directory)
+
+stdout:
+  briefcase-build: no config-src/ directory, nothing to build.
+
+stderr:
+(empty)
+
+exit code:
+0
+

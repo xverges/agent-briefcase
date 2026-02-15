@@ -1,0 +1,26 @@
+Scenario: Basic build with no includes copies files verbatim to config/
+
+Source files:
+config-src/_shared/CLAUDE.md
+config-src/projectA/CLAUDE.md
+
+stdout:
+    created: _shared/CLAUDE.md
+    created: projectA/CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+1
+
+config/ after build:
+_shared/CLAUDE.md
+projectA/CLAUDE.md
+
+config/_shared/CLAUDE.md:
+# shared rules
+
+config/projectA/CLAUDE.md:
+# projectA rules
+

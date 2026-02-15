@@ -1,0 +1,32 @@
+Scenario: Init in an empty directory creates the full briefcase structure
+
+stdout:
+    created: config/
+    created: config-src/_shared/
+    created: BRIEFCASE.md
+    created: config-src/_includes/README.md
+    created: dotfiles/README.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+directory tree after init:
+BRIEFCASE.md
+config-src/_includes/README.md
+dotfiles/README.md
+
+BRIEFCASE.md exists:
+True
+
+config-src/_includes/README.md exists:
+True
+
+config-src/_shared/ directory exists:
+True
+
+dotfiles/README.md exists:
+True
+

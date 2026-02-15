@@ -1,0 +1,8 @@
+Scenario: Circular includes are detected and reported as an error
+
+Include chain:
+CLAUDE.md → a.md → b.md → a.md (cycle!)
+
+Error:
+circular include detected: a.md → b.md → a.md
+

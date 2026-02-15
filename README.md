@@ -11,39 +11,127 @@ Share your team's AI agent knowledge across every repo.
 Teams using AI coding agents accumulate valuable configuration — prompts, slash commands, rules,
 MCP server setups — but it stays trapped in individual repos. Developers in projectB don't know
 that projectA has a great code review command. Agent-related dotfiles remain hidden in home
-folders. Good practices don't spread.
+folders. Good practices don't spread. And with every assistant expecting its own config file format, keeping guidance consistent across tools is yet another burden.
+
+## The config file maze
+
+Every AI coding assistant has its own convention for where project instructions live:
+
+| Assistant | Config file(s) |
+|---|---|
+| Claude Code | `CLAUDE.md`, `.claude/commands/*.md`, `.claude/settings.local.json` |
+| Cursor | `.cursorrules` |
+| Windsurf | `.windsurf/rules/*.md` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Cline | `.clinerules` |
+| Aider | `.aider.conf.yml`, `CONVENTIONS.md` |
+
+Teams using more than one assistant end up maintaining the same guidance in multiple places — and they inevitably drift apart. A code-style rule added to `CLAUDE.md` never makes it to `.cursorrules`. A testing convention in `.github/copilot-instructions.md` is missing from `.clinerules`.
+
+`agent-briefcase` solves this by letting you author shared fragments once and compose them into each assistant's config file. Update the fragment, and every assistant's config gets the change on the next build.
 
 ## How it works
 
-`briefcase` is a [pre-commit](https://pre-commit.com) hook. You keep your team's agent configuration in a single shared repo (the "briefcase"). Each project repo pulls its configuration from the briefcase automatically on `git checkout` and `git merge`.
+`agent-briefcase` is a set of [pre-commit](https://pre-commit.com) hooks. You keep your team's agent configuration in a single shared repo (the "briefcase") and it flows automatically to every project repo.
 
-Configuration is organized with a simple convention:
+There are three steps:
+
+1. **Init** the briefcase repo (once) — scaffold the directory structure, a `BRIEFCASE.md` guide for your team, and the build hook pre-configured.
+
+2. **Build** (every commit of the briefcase repo) — `config-src/` templates are assembled into `config/`. Runs automatically as a pre-commit hook.
+
+3. **Sync** (every checkout/merge of a target repo) — `config/` files are copied into the working tree. Shared files go everywhere; project-specific files go only to matching repos.
 
 ```
-your-briefcase-repo/
-├── config/
-│   ├── _shared/             # applies to all projects
-│   │   └── .claude/
-│   │       └── commands/
-│   │           └── review.md
-│   ├── projectA/            # only applies to projectA (matched by folder name)
-│   │   └── CLAUDE.md
-│   └── projectB/
-│       └── CLAUDE.md
-├── docs/                    # non-config content lives alongside
-├── dotfiles/                # dotfiles that team members chose to share (not-synchronized)
-└── README.md
+                    briefcase repo                          target repos
+                    ─────────────                           ────────────
+  briefcase-init ▸  config-src/  ──build──▸  config/  ──sync──▸  projectA/
+                      _includes/               _shared/           projectB/
+                      _shared/                 projectA/           ...
+                      projectA/                projectB/
 ```
 
-All synced content lives under `config/`. Files in `config/_shared/` are synced to every project. Files in a project-specific folder override shared files when both exist at the same path. Folders prefixed with `_` are reserved for special purposes and are never treated as project names. The rest of the repo is yours — docs, guides, scripts, etc.
+The briefcase repo commits generated config. Target repos receive ephemeral copies that are gitignored.
 
 ## Quick start
 
-### 1. Set up your briefcase repo
+### 1. Create your briefcase repo
 
-Create a new repo with a `config/` folder containing a `_shared/` folder and per-project folders as needed. The project folder names must match the directory names of your target repos (or use `--project` to map them explicitly).
+```bash
+mkdir team-briefcase && cd team-briefcase && git init
+```
 
-### 2. Add the hook to your target repos
+Create a `.pre-commit-config.yaml` with the following content:
+
+```yaml
+repos:
+  - repo: https://github.com/xverges/agent-briefcase
+    rev: v0.5.0
+    hooks:
+      - id: briefcase-init
+        stages: [manual]
+      - id: briefcase-build
+```
+
+Then scaffold the directory structure:
+
+```bash
+pre-commit install
+pre-commit run briefcase-init --hook-stage manual
+```
+
+This creates:
+
+```
+team-briefcase/
+├── .pre-commit-config.yaml    # already has briefcase-build wired up
+├── BRIEFCASE.md               # guide for your team (how this briefcase works)
+├── config/                    # generated output (do not edit directly)
+├── config-src/
+│   ├── _includes/             # reusable fragments for {{include}} directives
+│   │   └── README.md
+│   └── _shared/               # config that syncs to all projects
+└── dotfiles/                  # share personal configs here (not managed by briefcase)
+    └── README.md
+```
+
+### 2. Add your team's configuration
+
+Edit files under `config-src/`. Everything in `_shared/` syncs to all projects. Create project-specific folders for overrides:
+
+```
+config-src/
+├── _includes/
+│   └── code-style.md                # reusable fragment
+├── _shared/
+│   ├── .claude/
+│   │   └── commands/
+│   │       └── review.md            # shared slash command
+│   └── CLAUDE.md                    # shared rules for all projects
+└── projectA/
+    └── CLAUDE.md                    # overrides _shared/CLAUDE.md in projectA only
+```
+
+Use `{{include}}` to pull in fragments from `_includes/`:
+
+```markdown
+# Project Rules
+
+{{include code-style.md}}
+
+## Testing
+Always run tests before committing.
+```
+
+You can preview the assembled output at any time with:
+
+```bash
+pre-commit run briefcase-build --all-files
+```
+
+When you commit, `briefcase-build` runs automatically as a pre-commit hook — includes are expanded, and the result is committed alongside your source.
+
+### 3. Add the sync hook to your target repos
 
 In each target repo's `.pre-commit-config.yaml`:
 
@@ -51,9 +139,10 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.4.0
+    rev: v0.5.0
     hooks:
       - id: briefcase-sync
+        args: [--briefcase=../team-briefcase]
 ```
 
 Then run:
@@ -62,22 +151,52 @@ Then run:
 pre-commit install
 ```
 
-### 3. Clone both repos as siblings
+### 4. Clone both repos as siblings
 
-By default the briefcase repo must be a sibling directory named `agent-briefcase`:
+By default the briefcase repo must be a sibling directory named `team-briefcase`. This convention means sync works out of the box with no configuration needed.
 
 ```
 ~/code/
-├── agent-briefcase/     # your briefcase repo (config/ folder inside)
-├── projectA/            # target repo — gets files from config/_shared/ + config/projectA/
-└── projectB/            # target repo — gets files from config/_shared/ + config/projectB/
+├── team-briefcase/      # your briefcase repo
+├── projectA/            # target repo — gets config/_shared/ + config/projectA/
+└── projectB/            # target repo — gets config/_shared/ + config/projectB/
 ```
 
 That's it. On every `git checkout` or `git merge` in a target repo, the hook syncs the relevant files automatically.
 
-## Configuration
+## The three hooks
 
-All options are passed via `args:` in `.pre-commit-config.yaml`. Everything is optional — the zero-config default works if your briefcase repo is a sibling directory named `agent-briefcase`.
+`agent-briefcase` provides three hooks:
+
+| Hook | Repo | Stage | What it does |
+|---|---|---|---|
+| `briefcase-init` | briefcase repo | `manual` | Scaffolds the briefcase directory structure (run once) |
+| `briefcase-build` | briefcase repo | `pre-commit` | Assembles `config/` from `config-src/` templates |
+| `briefcase-sync` | each target repo | `post-checkout`, `post-merge` | Copies `config/` files into the target repo |
+
+Init and build are configured in the briefcase repo's `.pre-commit-config.yaml`. Sync is configured separately in each target repo's `.pre-commit-config.yaml`.
+
+## Templating with includes
+
+Files in `config-src/_includes/` are reusable fragments. Reference them from any template with the `{{include}}` directive:
+
+```markdown
+{{include code-style.md}}
+```
+
+The directive must be on its own line. The entire line is replaced with the fragment's contents.
+
+**Nesting** — Fragments can include other fragments. Circular references are detected and reported as errors.
+
+**No includes?** — If your templates don't use `{{include}}`, files are copied verbatim from `config-src/` to `config/`. The build step is transparent.
+
+**No `config-src/`?** — If you prefer to edit `config/` directly, just don't create a `config-src/` directory. The build hook is a no-op and sync works directly from `config/`.
+
+See [SCENARIOS-build.md](SCENARIOS-build.md) for detailed examples of include expansion, nesting, circular detection, and stale file cleanup.
+
+## Sync configuration
+
+All sync options are passed via `args:` in the target repo's `.pre-commit-config.yaml`. Everything is optional — the zero-config default works if your briefcase repo is a sibling directory named `team-briefcase`.
 
 ```yaml
 hooks:
@@ -90,7 +209,7 @@ hooks:
 
 | Option | Default | Description |
 |---|---|---|
-| `--briefcase` | Sibling dir named `agent-briefcase` | Path (relative or absolute) to the briefcase repo. |
+| `--briefcase` | Sibling dir named `team-briefcase` | Path (relative or absolute) to the briefcase repo. |
 | `--project` | Target repo's directory name | Which folder inside `config/` to use for project-specific files. |
 | `--shared` | `_shared` | Which folder inside `config/` to use for shared files. |
 
@@ -117,15 +236,6 @@ args: [--shared=_shared-backend]
 ```yaml
 args: [--project=app]
 ```
-
-## Why post-checkout and post-merge?
-
-The hook runs on two git events:
-
-- **`post-checkout`** — fires after `git checkout` / `git switch`. This covers branch switches, the most common moment where you want fresh config synced.
-- **`post-merge`** — fires after `git merge` (including `git pull`). This ensures config is re-synced after pulling upstream changes.
-
-These are the two moments when your working tree changes due to git operations. The hook deliberately does **not** run as a `pre-commit` stage — injecting files into the working tree mid-commit would be disruptive and unexpected.
 
 ## Layering
 
@@ -197,13 +307,13 @@ echo "## My extra rules" >> CLAUDE.md
 The hook automatically runs `git fetch` on the briefcase repo and warns you if it's behind the remote:
 
 ```
-briefcase: WARNING — briefcase repo is 3 commit(s) behind origin/main. Run `git -C ../agent-briefcase pull` to get the latest team config.
+briefcase: WARNING — briefcase repo is 3 commit(s) behind origin/main. Run `git -C ../team-briefcase pull` to get the latest team config.
 ```
 
 The sync still proceeds with whatever is checked out locally — the warning is informational only. To pick up the latest team configuration:
 
 ```bash
-git -C ../agent-briefcase pull    # update the briefcase repo
+git -C ../team-briefcase pull    # update the briefcase repo
 pre-commit run briefcase-sync --hook-stage post-checkout   # re-sync
 ```
 
@@ -214,7 +324,7 @@ If the fetch fails (e.g. you're offline), the staleness check is silently skippe
 If the briefcase repo is not found at the expected path, the hook prints a warning to stderr and exits with success (exit code 0):
 
 ```
-briefcase: WARNING — briefcase repo not found at '../agent-briefcase', skipping sync.
+briefcase: WARNING — briefcase repo not found at '../team-briefcase', skipping sync.
 ```
 
 This means CI environments won't fail, but the warning is always visible in logs so misconfigurations don't go unnoticed.
@@ -229,7 +339,10 @@ pre-commit run briefcase-sync --hook-stage post-checkout
 
 ## Behavior reference
 
-See [SCENARIOS-sync.md](SCENARIOS-sync.md) for a full catalog of how briefcase handles every sync situation — fresh syncs, layering, local modifications, missing repos, and more. Auto-generated from end-to-end tests.
+- [SCENARIOS-sync.md](SCENARIOS-sync.md) — how briefcase handles every sync situation (fresh syncs, layering, local modifications, missing repos, and more)
+- [SCENARIOS-build.md](SCENARIOS-build.md) — how the build step processes templates (include expansion, nesting, circular detection, stale cleanup)
+
+Auto-generated from end-to-end tests.
 
 ## Development
 
@@ -253,6 +366,6 @@ uv tool run nox
 The version in `pyproject.toml` is the single source of truth. To release a new version:
 
 1. Bump `version` in `pyproject.toml`
-2. Update `rev:` in this README to match (prefixed with `v`) — a test will fail if they diverge
+2. Update every `rev:` in this README to match (prefixed with `v`) — a test scans for stale references and will fail if any diverge
 3. Merge to `main`
 4. CI automatically creates the corresponding git tag via `.github/workflows/release.yml`

@@ -1,0 +1,14 @@
+Scenario: config-src/_includes/README.md explains the _includes directory
+
+config-src/_includes/README.md:
+# _includes
+
+Place reusable fragments here. Reference them from any template with:
+
+```
+{{include filename.md}}
+```
+
+The directive must be on its own line. Fragments can include other fragments.
+
+

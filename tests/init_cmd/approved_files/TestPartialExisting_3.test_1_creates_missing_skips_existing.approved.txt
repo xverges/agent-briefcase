@@ -1,0 +1,26 @@
+Scenario: Init with partially existing structure creates missing parts, skips existing
+
+Setup:
+config-src/_includes/README.md already exists with custom content
+
+stdout:
+    created: config/
+    created: config-src/_shared/
+    created: BRIEFCASE.md
+    skipped: config-src/_includes/README.md (already exists)
+    created: dotfiles/README.md
+
+stderr:
+(empty)
+
+exit code:
+0
+
+directory tree after init:
+BRIEFCASE.md
+config-src/_includes/README.md
+dotfiles/README.md
+
+config-src/_includes/README.md (preserved):
+existing includes readme
+

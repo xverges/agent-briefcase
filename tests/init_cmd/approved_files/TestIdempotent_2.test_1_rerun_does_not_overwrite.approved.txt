@@ -1,0 +1,20 @@
+Scenario: Re-running init skips existing files (does not overwrite)
+
+Setup:
+BRIEFCASE.md modified to 'custom content' after first init
+
+stdout:
+    skipped: BRIEFCASE.md (already exists)
+    skipped: config-src/_includes/README.md (already exists)
+    skipped: dotfiles/README.md (already exists)
+  briefcase-init: everything already exists, nothing to do.
+
+stderr:
+(empty)
+
+exit code:
+0
+
+BRIEFCASE.md after second init:
+custom content
+

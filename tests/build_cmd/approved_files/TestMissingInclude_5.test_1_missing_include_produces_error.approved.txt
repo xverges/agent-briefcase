@@ -1,0 +1,8 @@
+Scenario: Missing include file is reported as an error
+
+Directive in source:
+{{include nonexistent.md}}
+
+Error:
+include file not found: nonexistent.md
+

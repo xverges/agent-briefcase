@@ -1,0 +1,77 @@
+Scenario: BRIEFCASE.md contains operational guide for the team
+
+BRIEFCASE.md:
+# Team Briefcase
+
+This repo holds your team's shared AI agent configuration. It is managed by
+[agent-briefcase](https://github.com/xverges/agent-briefcase).
+
+## What this solves
+
+Teams using AI coding agents accumulate valuable configuration — prompts, slash
+commands, rules, MCP server setups — but it stays trapped in individual repos.
+Good practices don't spread. And with every assistant expecting its own config
+file format (`CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, …),
+keeping guidance consistent is yet another burden.
+
+`agent-briefcase` lets you author shared fragments once and compose them into
+each assistant's config file. Update the fragment, and every project gets the
+change on the next sync.
+
+## How it works
+
+There are three steps:
+
+1. **Init** the briefcase repo (once) — already done.
+2. **Build** (every commit of the briefcase repo) — templates in `config-src/`
+   are assembled into `config/`. The `briefcase-build` pre-commit hook does this
+   automatically.
+3. **Sync** (every checkout/merge of a target repo) — a `briefcase-sync` hook
+   copies the relevant `config/` files into the working tree.
+
+```
+                    briefcase repo                          target repos
+                    ─────────────                           ────────────
+  briefcase-init ▸  config-src/  ──build──▸  config/  ──sync──▸  projectA/
+                      _includes/               _shared/           projectB/
+                      _shared/                 projectA/           ...
+                      projectA/                projectB/
+```
+
+The briefcase repo commits the generated `config/`. Target repos receive
+ephemeral copies that are gitignored.
+
+## Directory structure
+
+| Directory | Purpose |
+|---|---|
+| `config-src/_shared/` | Configuration that syncs to **all** target repos. |
+| `config-src/<project>/` | Configuration that syncs only to the matching repo. |
+| `config-src/_includes/` | Reusable fragments referenced by `{{include <file>}}` directives. |
+| `config/` | **Generated** — do not edit directly. Built from `config-src/` on every commit. |
+| `dotfiles/` | A place to share personal dotfiles with the team. Not managed by briefcase. |
+
+## Editing configuration
+
+1. Edit files under `config-src/`.
+2. Use `{{include <file>}}` to pull in fragments from `_includes/`.
+3. Preview the result with `pre-commit run briefcase-build --all-files`.
+4. Commit — the `briefcase-build` pre-commit hook assembles `config/` automatically.
+
+## Adding the sync hook to a target repo
+
+In the target repo's `.pre-commit-config.yaml`:
+
+```yaml
+default_install_hook_types: [post-checkout, post-merge]
+repos:
+  - repo: https://github.com/xverges/agent-briefcase
+    rev: v<VERSION>
+    hooks:
+      - id: briefcase-sync
+        args: [--briefcase=../briefcase]
+```
+
+Then run `pre-commit install`.
+
+
