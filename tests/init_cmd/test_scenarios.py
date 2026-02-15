@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import textwrap
 from io import StringIO
 from pathlib import Path
@@ -16,6 +17,9 @@ import briefcase_init
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+VERSION_RE = re.compile(r"(rev:\s*)v\d+\.\d+\.\d+")
+VERSION_PLACEHOLDER = r"\1v<VERSION>"
 
 
 def run_init(target_dir: Path) -> tuple[int, str, str]:
@@ -47,6 +51,11 @@ def read_file(path: Path) -> str:
     if not path.exists():
         return "(file does not exist)"
     return path.read_text()
+
+
+def scrub_version(text: str) -> str:
+    """Replace concrete version strings so approved files don't go stale."""
+    return VERSION_RE.sub(VERSION_PLACEHOLDER, text)
 
 
 def format_output(text: str) -> str:
@@ -154,7 +163,7 @@ class TestGeneratedContent_4:
         run_init(target)
 
         story = scenario("BRIEFCASE.md contains operational guide for the team")
-        story.add_frame(read_file(target / "BRIEFCASE.md"), "BRIEFCASE.md")
+        story.add_frame(scrub_version(read_file(target / "BRIEFCASE.md")), "BRIEFCASE.md")
         verify(story)
 
     def test_2_includes_readme_content(self, tmp_path: Path) -> None:

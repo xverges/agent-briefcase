@@ -66,7 +66,7 @@ In the target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.4.0
+    rev: v<VERSION>
     hooks:
       - id: briefcase-sync
         args: [--briefcase=../briefcase]

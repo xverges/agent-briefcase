@@ -139,7 +139,7 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.4.0
+    rev: v0.5.0
     hooks:
       - id: briefcase-sync
         args: [--briefcase=../team-briefcase]
@@ -366,6 +366,6 @@ uv tool run nox
 The version in `pyproject.toml` is the single source of truth. To release a new version:
 
 1. Bump `version` in `pyproject.toml`
-2. Update `rev:` in this README to match (prefixed with `v`) — a test will fail if they diverge
+2. Update every `rev:` in this README to match (prefixed with `v`) — a test scans for stale references and will fail if any diverge
 3. Merge to `main`
 4. CI automatically creates the corresponding git tag via `.github/workflows/release.yml`
