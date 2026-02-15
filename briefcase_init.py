@@ -6,71 +6,15 @@ import sys
 from importlib.metadata import version
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Generated file contents
-# ---------------------------------------------------------------------------
+_TEMPLATES_DIR = Path(__file__).parent / "templates"
 
-BRIEFCASE_MD = """\
-# Team Briefcase
 
-This repo holds your team's shared AI agent configuration. It is managed by
-[agent-briefcase](https://github.com/xverges/agent-briefcase).
-
-## Directory structure
-
-| Directory | Purpose |
-|---|---|
-| `config-src/_shared/` | Configuration that syncs to **all** target repos. |
-| `config-src/<project>/` | Configuration that syncs only to the matching repo. |
-| `config-src/_includes/` | Reusable fragments referenced by `{{{{include <file>}}}}` directives. |
-| `config/` | **Generated** — do not edit directly. Built from `config-src/` on every commit. |
-| `dotfiles/` | A place to share personal dotfiles with the team. Not managed by briefcase. |
-
-## Editing configuration
-
-1. Edit files under `config-src/`.
-2. Use `{{{{include <file>}}}}` to pull in fragments from `_includes/`.
-3. Preview the result with `pre-commit run briefcase-build --all-files`.
-4. Commit — the `briefcase-build` pre-commit hook assembles `config/` automatically.
-
-## Adding the sync hook to a target repo
-
-In the target repo's `.pre-commit-config.yaml`:
-
-```yaml
-default_install_hook_types: [post-checkout, post-merge]
-repos:
-  - repo: https://github.com/xverges/agent-briefcase
-    rev: {version}
-    hooks:
-      - id: briefcase-sync
-        args: [--briefcase=../{dir_name}]
-```
-
-Then run `pre-commit install`.
-"""
-
-INCLUDES_README = """\
-# _includes
-
-Place reusable fragments here. Reference them from any template with:
-
-```
-{{include filename.md}}
-```
-
-The directive must be on its own line. Fragments can include other fragments.
-"""
-
-DOTFILES_README = """\
-# dotfiles
-
-A place for team members to share personal configuration files — shell aliases,
-editor settings, tool configs, etc.
-
-These files are **not** managed by briefcase. They are not synced or built.
-They live here as a convenience so the team can learn from each other's setups.
-"""
+def _load_template(name: str, **replacements: str) -> str:
+    """Load a template file, optionally substituting placeholders."""
+    content = (_TEMPLATES_DIR / name).read_text()
+    for key, value in replacements.items():
+        content = content.replace(key, value)
+    return content
 
 
 def _get_version() -> str:
@@ -81,10 +25,11 @@ def _get_version() -> str:
 
 
 def _scaffold_files(dir_name: str) -> dict[str, str]:
+    v = _get_version()
     return {
-        "BRIEFCASE.md": BRIEFCASE_MD.format(version=_get_version(), dir_name=dir_name),
-        "config-src/_includes/README.md": INCLUDES_README,
-        "dotfiles/README.md": DOTFILES_README,
+        "BRIEFCASE.md": _load_template("BRIEFCASE.md.template", **{"$VERSION": v, "$DIR_NAME": dir_name}),
+        "config-src/_includes/README.md": _load_template("includes-README.md"),
+        "dotfiles/README.md": _load_template("dotfiles-README.md"),
     }
 
 

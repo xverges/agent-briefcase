@@ -1,6 +1,3 @@
-Scenario: BRIEFCASE.md contains operational guide for the team
-
-BRIEFCASE.md:
 # Team Briefcase
 
 This repo holds your team's shared AI agent configuration. It is managed by
@@ -66,12 +63,10 @@ In the target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.4.0
+    rev: $VERSION
     hooks:
       - id: briefcase-sync
-        args: [--briefcase=../briefcase]
+        args: [--briefcase=../$DIR_NAME]
 ```
 
 Then run `pre-commit install`.
-
-

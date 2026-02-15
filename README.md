@@ -36,11 +36,11 @@ Teams using more than one assistant end up maintaining the same guidance in mult
 
 There are three steps:
 
-1. **Init** (once) — Scaffold a new briefcase repo with the right directory structure, a `BRIEFCASE.md` guide for your team, and the build hook pre-configured.
+1. **Init** the briefcase repo (once) — scaffold the directory structure, a `BRIEFCASE.md` guide for your team, and the build hook pre-configured.
 
-2. **Build** (every commit) — `config-src/` templates are assembled into `config/`. Runs automatically as a pre-commit hook in the briefcase repo.
+2. **Build** (every commit of the briefcase repo) — `config-src/` templates are assembled into `config/`. Runs automatically as a pre-commit hook.
 
-3. **Sync** (every checkout/merge) — In each target repo, `config/` files are copied into the working tree. Shared files go everywhere; project-specific files go only to matching repos.
+3. **Sync** (every checkout/merge of a target repo) — `config/` files are copied into the working tree. Shared files go everywhere; project-specific files go only to matching repos.
 
 ```
                     briefcase repo                          target repos

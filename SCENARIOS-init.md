@@ -116,6 +116,41 @@ BRIEFCASE.md:
 This repo holds your team's shared AI agent configuration. It is managed by
 [agent-briefcase](https://github.com/xverges/agent-briefcase).
 
+## What this solves
+
+Teams using AI coding agents accumulate valuable configuration — prompts, slash
+commands, rules, MCP server setups — but it stays trapped in individual repos.
+Good practices don't spread. And with every assistant expecting its own config
+file format (`CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, …),
+keeping guidance consistent is yet another burden.
+
+`agent-briefcase` lets you author shared fragments once and compose them into
+each assistant's config file. Update the fragment, and every project gets the
+change on the next sync.
+
+## How it works
+
+There are three steps:
+
+1. **Init** the briefcase repo (once) — already done.
+2. **Build** (every commit of the briefcase repo) — templates in `config-src/`
+   are assembled into `config/`. The `briefcase-build` pre-commit hook does this
+   automatically.
+3. **Sync** (every checkout/merge of a target repo) — a `briefcase-sync` hook
+   copies the relevant `config/` files into the working tree.
+
+```
+                    briefcase repo                          target repos
+                    ─────────────                           ────────────
+  briefcase-init ▸  config-src/  ──build──▸  config/  ──sync──▸  projectA/
+                      _includes/               _shared/           projectB/
+                      _shared/                 projectA/           ...
+                      projectA/                projectB/
+```
+
+The briefcase repo commits the generated `config/`. Target repos receive
+ephemeral copies that are gitignored.
+
 ## Directory structure
 
 | Directory | Purpose |
