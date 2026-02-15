@@ -66,7 +66,7 @@ Create a `.pre-commit-config.yaml` with the following content:
 ```yaml
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.4.0
+    rev: v0.5.0
     hooks:
       - id: briefcase-init
         stages: [manual]
