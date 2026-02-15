@@ -20,10 +20,10 @@ Every AI coding assistant has its own convention for where project instructions 
 | Assistant | Config file(s) |
 |---|---|
 | Claude Code | `CLAUDE.md`, `.claude/commands/*.md`, `.claude/settings.local.json` |
-| Cursor | `.cursorrules` |
-| Windsurf | `.windsurf/rules/*.md` |
-| GitHub Copilot | `.github/copilot-instructions.md` |
-| Cline | `.clinerules` |
+| IBM Bob | `AGENTS.md`, `.bob/rules/*.md`, `.bob/commands/*.md` |
+| Cursor | `AGENTS.md`, `.cursorrules` |
+| Windsurf | `AGENTS.md`, `.windsurf/rules/*.md` |
+| GitHub Copilot | `AGENTS.md`, `.github/copilot-instructions.md` |
 | Aider | `.aider.conf.yml`, `CONVENTIONS.md` |
 
 Teams using more than one assistant end up maintaining the same guidance in multiple places — and they inevitably drift apart. A code-style rule added to `CLAUDE.md` never makes it to `.cursorrules`. A testing convention in `.github/copilot-instructions.md` is missing from `.clinerules`.
@@ -47,8 +47,8 @@ There are three steps:
         ────────────────────────────────────            ──────────────────
 init ─▸ config-src/  ──build──▸  config/
           _includes/               _shared/
-          _shared/                 projectA/  ──sync──▸ AGENT.md+ for projectA
-          projectA/                projectB/  ──sync──▸ AGENT.md+ for projectB
+          _shared/                 projectA/  ──sync──▸ AGENTS.md+ for projectA
+          projectA/                projectB/  ──sync──▸ AGENTS.md+ for projectB
 ```
 
 The briefcase repo commits generated config. Target repos receive ephemeral copies that are gitignored.
@@ -66,7 +66,7 @@ Create a `.pre-commit-config.yaml` with the following content:
 ```yaml
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.6.0
+    rev: v0.7.0
     hooks:
       - id: briefcase-init
         stages: [manual]
@@ -139,7 +139,7 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.6.0
+    rev: v0.7.0
     hooks:
       - id: briefcase-sync
         args: [--briefcase=../team-briefcase]
