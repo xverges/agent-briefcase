@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -93,7 +94,54 @@ def build(briefcase_dir: Path) -> int:
                         break
                     parent = parent.parent
 
-    return 1 if changed else 0
+    if changed:
+        return 1
+
+    # Config on disk is up-to-date. Check whether any config/ files need staging.
+    unstaged = check_unstaged_config(briefcase_dir)
+    if unstaged:
+        print("briefcase-build: config/ files need to be staged:")
+        for f in sorted(unstaged):
+            print(f"  unstaged: {f}")
+        return 1
+
+    return 0
+
+
+def check_unstaged_config(briefcase_dir: Path) -> list[str]:
+    """Return config/ files that have unstaged changes (modified or untracked).
+
+    Returns an empty list if not inside a git repo.
+    """
+    try:
+        subprocess.run(
+            ["git", "rev-parse", "--git-dir"],
+            cwd=briefcase_dir,
+            capture_output=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return []
+
+    # Modified but not staged
+    result = subprocess.run(
+        ["git", "diff", "--name-only", "--", CONFIG_OUT],
+        cwd=briefcase_dir,
+        capture_output=True,
+        text=True,
+    )
+    unstaged = {f for f in result.stdout.splitlines() if f}
+
+    # Untracked files under config/
+    result = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", "--", CONFIG_OUT],
+        cwd=briefcase_dir,
+        capture_output=True,
+        text=True,
+    )
+    unstaged |= {f for f in result.stdout.splitlines() if f}
+
+    return sorted(unstaged)
 
 
 def main(argv: list[str] | None = None) -> int:
