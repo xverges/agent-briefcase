@@ -7,6 +7,7 @@ new-file.md (just added)
 stdout:
   briefcase: synced CLAUDE.md
   briefcase: synced new-file.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

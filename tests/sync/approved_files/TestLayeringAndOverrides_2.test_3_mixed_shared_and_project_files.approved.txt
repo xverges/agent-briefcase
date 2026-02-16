@@ -7,6 +7,7 @@ my-project/CLAUDE.md                (from project)
 stdout:
   briefcase: synced .claude/commands/review.md
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

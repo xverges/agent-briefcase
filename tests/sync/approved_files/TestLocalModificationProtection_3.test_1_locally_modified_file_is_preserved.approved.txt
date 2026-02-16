@@ -6,6 +6,7 @@ local CLAUDE.md:     '# my local edits'
 
 stdout:
   briefcase: SKIPPING CLAUDE.md (locally modified)
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

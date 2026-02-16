@@ -5,6 +5,7 @@ git rev-parse → fails (not a git repo)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

@@ -66,7 +66,7 @@ Create a `.pre-commit-config.yaml` with the following content:
 ```yaml
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.11.0
+    rev: v0.12.0
     hooks:
       - id: briefcase-init
         stages: [manual]
@@ -142,7 +142,7 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [pre-commit, post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.11.0
+    rev: v0.12.0
     hooks:
       - id: briefcase-sync
         # Args (all optional, zero-config works for sibling "team-briefcase"):
@@ -387,7 +387,6 @@ for f in $(find tests -name '*.received.txt'); do mv "$f" "${f/received/approved
 
 The version in `pyproject.toml` is the single source of truth. To release a new version:
 
-1. Bump `version` in `pyproject.toml`
-2. Update every `rev:` in this README to match (prefixed with `v`) — a test scans for stale references and will fail if any diverge
-3. Merge to `main`
-4. CI automatically creates the corresponding git tag via `.github/workflows/release.yml`
+1. Run `uv run scripts/bump-version.py <new-version>` — updates `pyproject.toml`, `rev:` references in this README, and `uv.lock`
+2. Merge to `main`
+3. CI automatically creates the corresponding git tag via `.github/workflows/release.yml`

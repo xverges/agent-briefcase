@@ -6,6 +6,7 @@ after:  '# version 2'
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

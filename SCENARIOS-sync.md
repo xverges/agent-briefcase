@@ -18,6 +18,7 @@ briefcase/_shared/.claude/commands/review.md
 stdout:
   briefcase: synced .claude/commands/review.md
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -50,6 +51,7 @@ new-file.md (just added)
 stdout:
   briefcase: synced CLAUDE.md
   briefcase: synced new-file.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -76,6 +78,7 @@ CLAUDE.md (kept)
 stdout:
   briefcase: synced CLAUDE.md
   briefcase: removed .claude/commands/review.md (no longer in briefcase)
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -105,6 +108,7 @@ after:  '# version 2'
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -127,6 +131,7 @@ briefcase/_shared/CLAUDE.md
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -151,6 +156,7 @@ my-project/CLAUDE.md   → '# project-specific version'
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -174,6 +180,7 @@ my-project/CLAUDE.md                (from project)
 stdout:
   briefcase: synced .claude/commands/review.md
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -202,6 +209,7 @@ local CLAUDE.md:     '# my local edits'
 
 stdout:
   briefcase: SKIPPING CLAUDE.md (locally modified)
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -220,6 +228,7 @@ Scenario: Unmodified synced files are updated when the briefcase changes
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -291,6 +300,7 @@ echo 'hook-was-here' > .post-sync-marker
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
   briefcase: running .briefcase-post-sync.sh
 
 stderr:
@@ -313,6 +323,7 @@ Setup:
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -371,6 +382,7 @@ somewhere/else/my-briefcase
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -393,6 +405,7 @@ target dir is 'my-project' but --project=custom-name
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -415,6 +428,7 @@ BRIEFCASE_PATH points to env-briefcase/ with '# from BRIEFCASE_PATH'
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -437,6 +451,7 @@ briefcase/_shared/IGNORED.md  (should NOT sync)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -477,6 +492,7 @@ Scenario: Re-running sync with no changes is idempotent
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -504,6 +520,7 @@ remote HEAD: bbb2222 (3 commits ahead)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
   briefcase: WARNING — briefcase repo is 3 commit(s) behind origin/main. Run `git -C <tmp>/briefcase pull` to get the latest team config.
@@ -528,6 +545,7 @@ remote HEAD: aaa1111 (same)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -546,6 +564,7 @@ git fetch → fails (e.g. no network)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -564,6 +583,7 @@ git rev-parse → fails (not a git repo)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -583,6 +603,7 @@ remote HEAD: aaa1111 (local is ahead, 0 behind)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -602,6 +623,7 @@ git rev-parse origin/main → fails (no remote ref)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
@@ -624,12 +646,14 @@ projectB/AGENTS.md         → symlink to projectA/AGENTS.md
 
 projectA stdout:
   briefcase: synced AGENTS.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 projectA exit code:
 0
 
 projectB stdout:
   briefcase: synced AGENTS.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 projectB exit code:
 0

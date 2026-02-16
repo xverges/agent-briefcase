@@ -2,6 +2,7 @@ Scenario: Re-running sync with no changes is idempotent
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

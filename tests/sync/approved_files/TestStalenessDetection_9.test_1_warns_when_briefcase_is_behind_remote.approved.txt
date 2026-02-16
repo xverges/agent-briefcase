@@ -6,6 +6,7 @@ remote HEAD: bbb2222 (3 commits ahead)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
   briefcase: WARNING — briefcase repo is 3 commit(s) behind origin/main. Run `git -C <tmp>/briefcase pull` to get the latest team config.

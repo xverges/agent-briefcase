@@ -6,6 +6,7 @@ git rev-parse origin/main → fails (no remote ref)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)
