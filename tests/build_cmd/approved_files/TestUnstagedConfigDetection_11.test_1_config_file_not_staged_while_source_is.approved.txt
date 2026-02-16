@@ -1,0 +1,21 @@
+Scenario: Build fails when config-src/ is staged but corresponding config/ output is not
+
+Git staging state:
+config-src/_shared/extra.md is staged
+config/_shared/extra.md is NOT staged
+
+stdout:
+    unchanged: _shared/CLAUDE.md
+    unchanged: _shared/extra.md
+  briefcase-build: config/ files need to be staged:
+    unstaged: config/_shared/extra.md
+
+stderr:
+(empty)
+
+exit code:
+1
+
+Expected behavior:
+exit code should be 1 so pre-commit blocks the commit
+

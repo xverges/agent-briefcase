@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import textwrap
 from io import StringIO
 from pathlib import Path
@@ -276,4 +277,81 @@ class TestNoConfigSrcIsNoop_10:
         story = scenario("No config-src/ directory is a no-op (exits 0 with a message)")
         story.add_frame("(no config-src/ directory)", "Setup")
         add_result(story, exit_code, stdout, stderr)
+        verify(story)
+
+
+# ---------------------------------------------------------------------------
+# Git-aware helpers
+# ---------------------------------------------------------------------------
+
+
+def git(briefcase_dir: Path, *args: str) -> str:
+    """Run a git command inside briefcase_dir."""
+    result = subprocess.run(
+        ["git", *args],
+        cwd=briefcase_dir,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return result.stdout
+
+
+def init_git_repo(briefcase_dir: Path) -> None:
+    """Initialise a git repo with an initial commit."""
+    git(briefcase_dir, "init")
+    git(briefcase_dir, "config", "user.email", "test@test.com")
+    git(briefcase_dir, "config", "user.name", "Test")
+    # Need at least one commit so that git diff --cached works
+    write_file(briefcase_dir / ".gitkeep", "")
+    git(briefcase_dir, "add", ".")
+    git(briefcase_dir, "commit", "-m", "init")
+
+
+def staged_files(briefcase_dir: Path) -> str:
+    """Return list of staged files."""
+    return git(briefcase_dir, "diff", "--cached", "--name-only").strip()
+
+
+# ---------------------------------------------------------------------------
+# Git-aware scenarios
+# ---------------------------------------------------------------------------
+
+
+class TestUnstagedConfigDetection_11:
+    def test_1_config_file_not_staged_while_source_is(self, tmp_path: Path) -> None:
+        """Build should fail when config-src/ changes are staged but their
+        corresponding config/ outputs are not."""
+        briefcase = tmp_path / "briefcase"
+        briefcase.mkdir()
+        init_git_repo(briefcase)
+
+        # Create initial config-src and build, commit everything
+        write_file(briefcase / "config-src" / "_shared" / "CLAUDE.md", "# rules v1")
+        run_build(briefcase)
+        git(briefcase, "add", ".")
+        git(briefcase, "commit", "-m", "add initial config")
+
+        # Now add a NEW file in config-src
+        write_file(briefcase / "config-src" / "_shared" / "extra.md", "# extra")
+
+        # Build generates config/_shared/extra.md on disk
+        run_build(briefcase)
+
+        # Stage ONLY the source file, NOT the generated config/ file
+        git(briefcase, "add", "config-src/_shared/extra.md")
+
+        # Run build again — config/ on disk is up-to-date, but config/_shared/extra.md is NOT staged
+        exit_code, stdout, stderr = run_build(briefcase)
+
+        story = scenario("Build fails when config-src/ is staged but corresponding config/ output is not")
+        story.add_frame(
+            "config-src/_shared/extra.md is staged\nconfig/_shared/extra.md is NOT staged",
+            "Git staging state",
+        )
+        add_result(story, exit_code, stdout, stderr)
+        story.add_frame(
+            "exit code should be 1 so pre-commit blocks the commit",
+            "Expected behavior",
+        )
         verify(story)
