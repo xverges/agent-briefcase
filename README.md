@@ -66,7 +66,7 @@ Create a `.pre-commit-config.yaml` with the following content:
 ```yaml
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.10.0
+    rev: v0.11.0
     hooks:
       - id: briefcase-init
         stages: [manual]
@@ -142,7 +142,7 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [pre-commit, post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.10.0
+    rev: v0.11.0
     hooks:
       - id: briefcase-sync
         # Args (all optional, zero-config works for sibling "team-briefcase"):

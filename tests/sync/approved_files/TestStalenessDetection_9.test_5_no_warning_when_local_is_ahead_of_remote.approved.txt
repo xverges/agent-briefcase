@@ -1,0 +1,15 @@
+Scenario: Briefcase ahead of remote produces no staleness warning
+
+Briefcase git state:
+local HEAD: ccc3333
+remote HEAD: aaa1111 (local is ahead, 0 behind)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+

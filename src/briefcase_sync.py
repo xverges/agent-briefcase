@@ -99,6 +99,9 @@ def check_briefcase_staleness(briefcase_dir: Path) -> None:
             check=True,
         ).stdout.strip()
 
+        if behind == "0":
+            return
+
         print(
             f"briefcase: WARNING — briefcase repo is {behind} commit(s) behind {branch}. "
             f"Run `git -C {briefcase_dir} pull` to get the latest team config.",

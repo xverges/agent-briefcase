@@ -572,7 +572,26 @@ exit code:
 0
 ```
 
-### 27. No warning when remote ref not found
+### 27. No warning when local is ahead of remote
+
+```
+Scenario: Briefcase ahead of remote produces no staleness warning
+
+Briefcase git state:
+local HEAD: ccc3333
+remote HEAD: aaa1111 (local is ahead, 0 behind)
+
+stdout:
+  briefcase: synced CLAUDE.md
+
+stderr:
+(empty)
+
+exit code:
+0
+```
+
+### 28. No warning when remote ref not found
 
 ```
 Scenario: Missing remote tracking branch skips staleness check
@@ -594,7 +613,7 @@ exit code:
 
 ## Symlink Support
 
-### 28. Symlinked project files are synced as copies
+### 29. Symlinked project files are synced as copies
 
 ```
 Scenario: Symlinked files in briefcase project folders are synced as regular copies

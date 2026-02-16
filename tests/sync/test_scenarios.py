@@ -620,7 +620,22 @@ class TestStalenessDetection_9:
         add_result(story, exit_code, stdout, stderr)
         verify(story)
 
-    def test_5_no_warning_when_remote_ref_not_found(self, tmp_path: Path) -> None:
+    def test_5_no_warning_when_local_is_ahead_of_remote(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
+
+        target = tmp_path / "my-project"
+        target.mkdir()
+
+        mock = _git_mock(local_sha="ccc3333", remote_sha="aaa1111", behind_count="0")
+        exit_code, stdout, stderr = run_sync(briefcase, target, subprocess_side_effect=mock)
+
+        story = scenario("Briefcase ahead of remote produces no staleness warning")
+        story.add_frame("local HEAD: ccc3333\nremote HEAD: aaa1111 (local is ahead, 0 behind)", "Briefcase git state")
+        add_result(story, exit_code, stdout, stderr)
+        verify(story)
+
+    def test_6_no_warning_when_remote_ref_not_found(self, tmp_path: Path) -> None:
         briefcase = tmp_path / "briefcase"
         write_file(briefcase / "config" / "_shared" / "CLAUDE.md", "# rules")
 
