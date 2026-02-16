@@ -306,6 +306,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Write lock file
     write_lock(lock_path, source_commit, new_files)
+    print(f"briefcase: updated {LOCK_FILE} (remember to commit it)")
 
     # Run post-sync hook
     run_post_sync_hook()

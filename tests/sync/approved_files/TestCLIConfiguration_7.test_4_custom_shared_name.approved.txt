@@ -6,6 +6,7 @@ briefcase/_shared/IGNORED.md  (should NOT sync)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

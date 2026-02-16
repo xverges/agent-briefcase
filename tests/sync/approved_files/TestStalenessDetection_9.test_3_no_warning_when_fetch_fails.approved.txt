@@ -5,6 +5,7 @@ git fetch → fails (e.g. no network)
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

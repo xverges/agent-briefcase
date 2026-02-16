@@ -79,6 +79,14 @@ repos:
 
 Then run `pre-commit install`.
 
+## The lock file
+
+Each target repo gets a `.briefcase.lock` file that tracks which briefcase commit
+was last synced and which files are managed. **Commit this file** — it enables
+detection of local modifications, automatic cleanup of removed files, and
+staleness checks in CI. The synced content files are gitignored, but
+`.briefcase.lock` is not.
+
 > **Note:** `default_install_hook_types` controls which hook types `pre-commit install` sets up. The default when omitted is `[pre-commit]`, so you must include `pre-commit` in the list to keep your existing hooks working. If you update this setting after having already run `pre-commit install`, you need to re-run it to pick up the new hook types.
 
 

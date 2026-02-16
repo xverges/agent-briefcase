@@ -6,12 +6,14 @@ projectB/AGENTS.md         → symlink to projectA/AGENTS.md
 
 projectA stdout:
   briefcase: synced AGENTS.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 projectA exit code:
 0
 
 projectB stdout:
   briefcase: synced AGENTS.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 projectB exit code:
 0

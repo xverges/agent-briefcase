@@ -2,6 +2,7 @@ Scenario: Unmodified synced files are updated when the briefcase changes
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

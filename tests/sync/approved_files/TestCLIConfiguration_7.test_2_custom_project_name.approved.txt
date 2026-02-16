@@ -6,6 +6,7 @@ target dir is 'my-project' but --project=custom-name
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

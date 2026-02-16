@@ -7,6 +7,7 @@ CLAUDE.md (kept)
 stdout:
   briefcase: synced CLAUDE.md
   briefcase: removed .claude/commands/review.md (no longer in briefcase)
+  briefcase: updated .briefcase.lock (remember to commit it)
 
 stderr:
 (empty)

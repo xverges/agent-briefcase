@@ -6,6 +6,7 @@ echo 'hook-was-here' > .post-sync-marker
 
 stdout:
   briefcase: synced CLAUDE.md
+  briefcase: updated .briefcase.lock (remember to commit it)
   briefcase: running .briefcase-post-sync.sh
 
 stderr:
