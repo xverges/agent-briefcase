@@ -179,6 +179,11 @@ repos:
     rev: v<VERSION>
     hooks:
       - id: briefcase-sync
+        # Args (all optional, zero-config works for sibling "team-briefcase"):
+        #   --briefcase=PATH  briefcase repo path (env BRIEFCASE_PATH takes precedence)
+        #   --project=NAME    folder in config/ for this repo (default: repo dir name)
+        #   --shared=NAME     shared folder in config/ (default: _shared)
+        # Manual run: pre-commit run briefcase-sync --hook-stage post-checkout
         args: [--briefcase=../briefcase]
 ```
 

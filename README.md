@@ -66,11 +66,14 @@ Create a `.pre-commit-config.yaml` with the following content:
 ```yaml
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.9.0
+    rev: v0.10.0
     hooks:
       - id: briefcase-init
         stages: [manual]
+        # Run once: pre-commit run briefcase-init --hook-stage manual
       - id: briefcase-build
+        # Runs automatically on commit. Assembles config/ from config-src/.
+        # Manual run: pre-commit run briefcase-build --all-files
 ```
 
 Then scaffold the directory structure:
@@ -139,9 +142,14 @@ In each target repo's `.pre-commit-config.yaml`:
 default_install_hook_types: [pre-commit, post-checkout, post-merge]
 repos:
   - repo: https://github.com/xverges/agent-briefcase
-    rev: v0.9.0
+    rev: v0.10.0
     hooks:
       - id: briefcase-sync
+        # Args (all optional, zero-config works for sibling "team-briefcase"):
+        #   --briefcase=PATH  briefcase repo path (env BRIEFCASE_PATH takes precedence)
+        #   --project=NAME    folder in config/ for this repo (default: repo dir name)
+        #   --shared=NAME     shared folder in config/ (default: _shared)
+        # Manual run: pre-commit run briefcase-sync --hook-stage post-checkout
         args: [--briefcase=../team-briefcase]
 ```
 
