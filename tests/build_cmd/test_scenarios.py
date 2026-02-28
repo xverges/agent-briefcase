@@ -280,6 +280,56 @@ class TestNoConfigSrcIsNoop_10:
         verify(story)
 
 
+class TestInvisibleCharDetection_11:
+    def test_1_invisible_chars_in_source_raise_error(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        # Zero-width space embedded after "# Rules" — invisible to reviewers
+        write_file(
+            briefcase / "config-src" / "_shared" / "CLAUDE.md",
+            "# Rules\u200b\nNo hidden tricks.",
+        )
+
+        try:
+            run_build(briefcase)
+            error = "(no error raised)"
+        except ValueError as e:
+            error = str(e)
+
+        story = scenario("Invisible characters in source files are detected and rejected")
+        story.add_frame(
+            'config-src/_shared/CLAUDE.md contains a zero-width space (U+200B) after "# Rules"',
+            "Setup",
+        )
+        story.add_frame(error, "Error")
+        verify(story)
+
+    def test_2_invisible_chars_in_include_raise_error(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        # Zero-width space hidden inside a fragment file
+        write_file(
+            briefcase / "config-src" / "_includes" / "shared.md",
+            "shared content\u200b here",
+        )
+        write_file(
+            briefcase / "config-src" / "_shared" / "CLAUDE.md",
+            "{{include shared.md}}",
+        )
+
+        try:
+            run_build(briefcase)
+            error = "(no error raised)"
+        except ValueError as e:
+            error = str(e)
+
+        story = scenario("Invisible characters in include fragments are also detected")
+        story.add_frame(
+            "config-src/_includes/shared.md contains a zero-width space (U+200B)",
+            "Setup",
+        )
+        story.add_frame(error, "Error")
+        verify(story)
+
+
 # ---------------------------------------------------------------------------
 # Git-aware helpers
 # ---------------------------------------------------------------------------
@@ -318,7 +368,7 @@ def staged_files(briefcase_dir: Path) -> str:
 # ---------------------------------------------------------------------------
 
 
-class TestUnstagedConfigDetection_11:
+class TestUnstagedConfigDetection_12:
     def test_1_config_file_not_staged_while_source_is(self, tmp_path: Path) -> None:
         """Build should fail when config-src/ changes are staged but their
         corresponding config/ outputs are not."""

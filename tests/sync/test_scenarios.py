@@ -688,3 +688,29 @@ class TestSymlinkSupport_10:
         story.add_frame(str(agents_a.is_symlink()), "projectA AGENTS.md is symlink?")
         story.add_frame(str(agents_b.is_symlink()), "projectB AGENTS.md is symlink?")
         verify(story)
+
+
+class TestInvisibleCharDetection_11:
+    def test_1_invisible_chars_in_config_file_raise_error(self, tmp_path: Path) -> None:
+        briefcase = tmp_path / "briefcase"
+        # Zero-width space in a committed config/ file (build check bypassed)
+        write_file(
+            briefcase / "config" / "_shared" / "CLAUDE.md",
+            "# Rules\u200b\nNo hidden tricks.",
+        )
+        target = tmp_path / "myproject"
+        target.mkdir()
+
+        try:
+            run_sync(briefcase, target, project_name="myproject")
+            error = "(no error raised)"
+        except ValueError as e:
+            error = str(e)
+
+        story = scenario("Invisible characters in briefcase config files are rejected during sync")
+        story.add_frame(
+            'config/_shared/CLAUDE.md contains a zero-width space (U+200B) after "# Rules"',
+            "Setup",
+        )
+        story.add_frame(error, "Error")
+        verify(story)

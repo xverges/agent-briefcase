@@ -1,0 +1,9 @@
+Scenario: Invisible characters in include fragments are also detected
+
+Setup:
+config-src/_includes/shared.md contains a zero-width space (U+200B)
+
+Error:
+invisible/suspicious characters found in config-src/ files (possible prompt injection):
+  config-src/_includes/shared.md:1:15: zero-width space (U+200B)
+
