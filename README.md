@@ -30,6 +30,19 @@ Teams using more than one assistant end up maintaining the same guidance in mult
 
 `agent-briefcase` solves this by letting you author shared fragments once and compose them into each assistant's config file. Update the fragment, and every assistant's config gets the change on the next build.
 
+## A word of warning on the effectivenes of AGENTS.md files
+
+A [2025 study](https://arxiv.org/abs/2602.11988) found that repository context files like
+`AGENTS.md` tend to *reduce* task success rates compared to providing no context, while
+also increasing inference cost by over 20%. Worth mentioning.
+
+> _Ultimately, we conclude that unnecessary requirements from context files make tasks
+harder, and human-written context files should describe only minimal requirements._
+
+That said, the authors describe some behaviour that could be, IMO, desirable:
+when context files are present, the coding agents run more tests and use more
+repository-specific tooling (e.g., uv).
+
 ## How it works
 
 `agent-briefcase` is a set of [pre-commit](https://pre-commit.com) hooks. You keep your team's agent configuration in a single shared repo (the "briefcase") and it flows automatically to every project repo.
