@@ -250,9 +250,38 @@ exit code:
 ```
 
 
+## Invisible Char Detection
+
+### 11. Invisible chars in source raise error
+
+```
+Scenario: Invisible characters in source files are detected and rejected
+
+Setup:
+config-src/_shared/CLAUDE.md contains a zero-width space (U+200B) after "# Rules"
+
+Error:
+invisible/suspicious characters found in config-src/ files (possible prompt injection):
+  config-src/_shared/CLAUDE.md:1:8: zero-width space (U+200B)
+```
+
+### 12. Invisible chars in include raise error
+
+```
+Scenario: Invisible characters in include fragments are also detected
+
+Setup:
+config-src/_includes/shared.md contains a zero-width space (U+200B)
+
+Error:
+invisible/suspicious characters found in config-src/ files (possible prompt injection):
+  config-src/_includes/shared.md:1:15: zero-width space (U+200B)
+```
+
+
 ## Unstaged Config Detection
 
-### 11. Config file not staged while source is
+### 13. Config file not staged while source is
 
 ```
 Scenario: Build fails when config-src/ is staged but corresponding config/ output is not

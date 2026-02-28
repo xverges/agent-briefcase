@@ -11,6 +11,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from briefcase_build import check_invisible_chars
+
 LOCK_FILE = ".briefcase.lock"
 POST_SYNC_HOOK = ".briefcase-post-sync.sh"
 MARKER_BEGIN = "# BEGIN briefcase-managed (do not edit this section)"
@@ -151,6 +153,13 @@ def sync_files(
         dest = Path(dest_rel)
         source_rel = str(src_path.relative_to(briefcase_dir))
         new_hash = hash_file(src_path)
+
+        findings = check_invisible_chars(src_path.read_text(), source_rel)
+        if findings:
+            raise ValueError(
+                "invisible/suspicious characters found in briefcase file"
+                " (possible prompt injection):\n" + "\n".join(findings)
+            )
 
         if dest.exists():
             current_hash = hash_file(dest)

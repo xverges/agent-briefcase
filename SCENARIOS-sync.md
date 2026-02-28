@@ -671,3 +671,19 @@ projectB AGENTS.md is symlink?:
 False
 ```
 
+
+## Invisible Char Detection
+
+### 30. Invisible chars in config file raise error
+
+```
+Scenario: Invisible characters in briefcase config files are rejected during sync
+
+Setup:
+config/_shared/CLAUDE.md contains a zero-width space (U+200B) after "# Rules"
+
+Error:
+invisible/suspicious characters found in briefcase file (possible prompt injection):
+  config/_shared/CLAUDE.md:1:8: zero-width space (U+200B)
+```
+

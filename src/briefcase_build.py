@@ -12,6 +12,54 @@ CONFIG_OUT = "config"
 INCLUDES_DIR = "_includes"
 INCLUDE_RE = re.compile(r"^\{\{include\s+(.+?)\}\}[ \t]*$", re.MULTILINE)
 
+# Characters that are invisible and can carry hidden instructions (prompt injection).
+# Covers: C0 control chars, soft hyphen, zero-width chars, Unicode bidi controls/isolates,
+# BOM, and the Unicode tag block (U+E0000-U+E007F).
+_INVISIBLE_RE = re.compile(
+    "["
+    "\x01-\x08"  # C0 control (not tab \x09, LF \x0a, CR \x0d)
+    "\x0b\x0c"  # vertical tab, form feed
+    "\x0e-\x1f"  # remaining C0 control chars
+    "\u00ad"  # soft hyphen
+    "\u200b-\u200d"  # zero-width space / non-joiner / joiner
+    "\u202a-\u202e"  # Unicode bidi controls (LRE, RLE, PDF, LRO, RLO)
+    "\u2066-\u2069"  # Unicode bidi isolates (LRI, RLI, FSI, PDI)
+    "\ufeff"  # BOM / zero-width no-break space
+    "\U000e0000-\U000e007f"  # Unicode tag block
+    "]"
+)
+
+_CHAR_NAMES: dict[int, str] = {
+    0x00AD: "soft hyphen",
+    0x200B: "zero-width space",
+    0x200C: "zero-width non-joiner",
+    0x200D: "zero-width joiner",
+    0xFEFF: "byte order mark / zero-width no-break space",
+}
+
+
+def _char_description(ch: str) -> str:
+    cp = ord(ch)
+    if cp in _CHAR_NAMES:
+        return f"{_CHAR_NAMES[cp]} (U+{cp:04X})"
+    if 0x202A <= cp <= 0x202E:
+        return f"bidi control character (U+{cp:04X})"
+    if 0x2066 <= cp <= 0x2069:
+        return f"bidi isolate character (U+{cp:04X})"
+    if 0xE0000 <= cp <= 0xE007F:
+        return f"Unicode tag character (U+{cp:04X})"
+    return f"control character (U+{cp:04X})"
+
+
+def check_invisible_chars(content: str, label: str) -> list[str]:
+    """Return finding messages for invisible/suspicious characters in content."""
+    findings = []
+    for line_no, line in enumerate(content.splitlines(keepends=True), 1):
+        for match in _INVISIBLE_RE.finditer(line):
+            col = match.start() + 1
+            findings.append(f"  {label}:{line_no}:{col}: {_char_description(match.group())}")
+    return findings
+
 
 def resolve_includes(content: str, includes_dir: Path, *, _chain: tuple[str, ...] = ()) -> str:
     """Replace {{include <file>}} directives with fragment contents.
@@ -53,6 +101,19 @@ def build(briefcase_dir: Path) -> int:
         if rel.parts[0] == INCLUDES_DIR:
             continue
         src_files[str(rel)] = path
+
+    # Scan all config-src/ files for invisible characters before building.
+    # These can carry hidden instructions invisible to human reviewers (prompt injection).
+    all_findings: list[str] = []
+    for path in sorted(src_root.rglob("*")):
+        if path.is_file():
+            label = str(path.relative_to(briefcase_dir))
+            all_findings.extend(check_invisible_chars(path.read_text(), label))
+    if all_findings:
+        raise ValueError(
+            "invisible/suspicious characters found in config-src/ files"
+            " (possible prompt injection):\n" + "\n".join(all_findings)
+        )
 
     # Process each source file
     changed = False
